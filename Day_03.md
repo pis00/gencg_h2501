@@ -2,7 +2,7 @@
 
 ## Clock / Time
 
-<video width="500" height="450" loop muted autoplay>
+<video width="800" height="450" loop muted autoplay>
   <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/day03/A_million_time.mp4" type="video/mp4">
 
 </video>
