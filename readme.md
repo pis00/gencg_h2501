@@ -1,4 +1,4 @@
-# Day 01
+# Template
 
 ## Computing without computer
 
