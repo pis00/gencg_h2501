@@ -2,8 +2,9 @@
 
 ## Clock / Time
 
-<video width="100%" height="450" controls loops= "" muted= "" autoplay="">
-<source src= https://github.com/pis00/gencg_h2501/raw/refs/heads/journal/content/day03/A_million_time.mp4> 
+<video width="100%" height="450" controls loop muted autoplay>
+  <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/day03/A_million_time.mp4" type="video/mp4">
+
 </video>
 
 In September 2021 Humans since 1982 launched A million Times (San José), a new site-specific commission for Mineta San José Airport in California, USA. Installed in the pre-security Arrivals Halls of Terminal B, the piece is a permanent public artwork as part of the Airport’s Art + Technology Public Art Program. 
