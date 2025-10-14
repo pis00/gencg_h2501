@@ -2,7 +2,7 @@
 
 ## Clock / Time
 
-<video width="800" height="450" loop muted autoplay>
+<video width="100%" height="450" loop muted autoplay>
   <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/day03/A_million_time.mp4" type="video/mp4">
 
 </video>
@@ -13,5 +13,5 @@ Humans since 1982 were selected by a panel of  Bay Area artists, arts administra
 
 ### My exemple
 {% raw %}
-<iframe src="content/day02/01/embed.html" width="100%" height="450" frameborder="no"></iframe>
+<iframe src="content/day03/01/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}

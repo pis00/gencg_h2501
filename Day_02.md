@@ -11,5 +11,5 @@ Maurits Cornelis Escher(17 June 1898 – 27 March 1972) was a Dutch graphic arti
 ### My exemple
 
 {% raw %}
-<iframe src="content/day02/01/embed.html" width="100%" height="450" frameborder="no"></iframe>
+<iframe src="content/day02/01/embed.html" width="100%" height="100%" frameborder="no"></iframe>
 {% endraw %}
