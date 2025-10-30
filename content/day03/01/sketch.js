@@ -42,7 +42,7 @@ function make2D(rows, cols, val = C_WHITE) {
 }
 
 function setup() {
-  createCanvas(600, 450);
+  createCanvas(400, 450);
   calculateCellSize();
 
   currentMask = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
