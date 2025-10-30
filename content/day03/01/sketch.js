@@ -1,259 +1,251 @@
-
-const GRID_COLS = 40;
-const GRID_ROWS = 24;
-const MARGIN_PX = 20;
-const FLIP_DURATION = 320;
-const RANDOM_STAGGER = 120;
-
-const RIPPLE_SPEED = 12;        // cells per second
-const RIPPLE_BAND  = 1.2;       // ring thickness (± around radius)
-const RIPPLE_MAX_AGE_MS = 6000; // cleanup cutoff
-
-const C_WHITE = 0;
-const C_BLACK = 1;
-const C_RED   = 2;
-
-let cellW, cellH;
-let currentMask; // committed, what the cell "is" right now
-let targetMask;  // baseline (from time glyphs)
-let flipInfo;    // per-cell ongoing flip {from,to,startMs,duration} or null
-let lastRenderKey = "";
-
-let ripples = [];
-
-const FONT5x7 = {
-  '0': ["01110","10001","10011","10101","11001","10001","01110"],
-  '1': ["00100","01100","00100","00100","00100","00100","01110"],
-  '2': ["01110","10001","00001","00010","00100","01000","11111"],
-  '3': ["11110","00001","00001","01110","00001","00001","11110"],
-  '4': ["00010","00110","01010","10010","11111","00010","00010"],
-  '5': ["11111","10000","11110","00001","00001","10001","01110"],
-  '6': ["00110","01000","10000","11110","10001","10001","01110"],
-  '7': ["11111","00001","00010","00100","01000","01000","01000"],
-  '8': ["01110","10001","10001","01110","10001","10001","01110"],
-  '9': ["01110","10001","10001","01111","00001","00010","01100"],
-  ':': ["0","1","0","0","1","0","0"]
-};
-
-function make2D(rows, cols, val = C_WHITE) {
-  const a = new Array(rows);
-  for (let r = 0; r < rows; r++) a[r] = new Array(cols).fill(val);
-  return a;
-}
+let stars = [];
+let orbitR = {};
+let fontSize;
 
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
-  calculateCellSize();
+  angleMode(DEGREES);
+  frameRate(60);
+  noCursor();
+  strokeCap(ROUND);
+  textAlign(CENTER, CENTER);
 
-  currentMask = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
-  targetMask  = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
-  flipInfo    = new Array(GRID_ROWS).fill().map(() => Array(GRID_COLS).fill(null));
+  const radius = min(width, height) * 0.40;
+  orbitR.seconds = radius * 1.00;
+  orbitR.minutes = radius * 0.70;
+  orbitR.hours   = radius * 0.50;
+  orbitR.face    = radius * 1.00;
+  fontSize = radius * 0.12;
 
-  noLoop();
-  setInterval(tick, 33); 
-  updateTimeMask(); 
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: random(-width, width),
+      y: random(-height, height),
+      a: random(180, 255),
+      s: random(0.5, 2.0)
+    });
+  }
 }
 
-function calculateCellSize() {
-  const usableW = width - MARGIN_PX * 2;
-  const usableH = height - MARGIN_PX * 2;
-  cellW = usableW / GRID_COLS;
-  cellH = usableH / GRID_ROWS;
+function draw() {
+  translate(width / 2, height / 2);
+  
+  const t = getContinuousTime();
+  const secondAngle = map(t.secondExact, 0, 60, 0, 360) - 90;  // continuous
+  const minuteAngle = map(t.minuteExact, 0, 60, 0, 360) - 90;  // continuous
+  const hourAngle   = map(t.hour12Exact, 0, 12, 0, 360) - 90;  // continuous
+
+  // Background & ambiance
+  drawSkyGradient(t.hour24 + t.minuteExact / 60);
+  drawVignette();
+  drawStars(t);
+  drawHorizonOrb(t);
+  drawGlassDial(orbitR.face);
+
+  // Ticks & numerals
+  drawTicksAndNumerals();
+
+  // Orbits
+  drawOrbit(orbitR.hours,   3, color(255, 255, 255, 40));
+  drawOrbit(orbitR.minutes, 2, color(255, 255, 255, 35));
+  drawOrbit(orbitR.seconds, 1, color(255, 255, 255, 30));
+
+  // Hands as glowing comets (all move linearly)
+  drawComet(secondAngle, orbitR.seconds, 9,  color(255, 10, 100), 24, 6);
+  drawComet(minuteAngle, orbitR.minutes, 10, color(100, 255, 10), 18, 5);
+  drawComet(hourAngle,   orbitR.hours,   12, color(10, 100, 255), 12, 4);
+
+  drawCenterHub();
 }
 
-function tick() {
-  updateTimeMask();
-  drawGrid();
+// ===== Time helpers (continuous from Date) =====
+function getContinuousTime() {
+  const now = new Date();
+  const ms  = now.getMilliseconds() / 1000;              // 0..1 sec fraction
+  const s   = now.getSeconds() + ms;                     // 0..60 smoothly
+  const m   = now.getMinutes() + s / 60;                 // 0..60 smoothly
+  const h24 = now.getHours();
+  const h12 = (h24 % 12) + m / 60;                       // 0..12 smoothly
+  return {
+    secondExact: s,
+    minuteExact: m,
+    hour12Exact: h12,
+    hour24: h24
+  };
 }
 
-function drawGrid() {
-  background(240);
+// ===== Visual helpers =====
+function drawSkyGradient(hourFloat) {
+  const nightWeight = constrain(
+    sin(map(hourFloat, 18, 30, 0, 180, true)) ** 2, 0, 1
+  );
+  const dayInner = color(210, 235, 255);
+  const dayOuter = color(140, 190, 255);
+  const nightInner = color(20, 24, 38);
+  const nightOuter = color(5, 8, 20);
+  const inner = lerpColor(dayInner, nightInner, nightWeight);
+  const outer = lerpColor(dayOuter, nightOuter, nightWeight);
+
+  noStroke();
+  const maxR = sqrt(sq(width) + sq(height)) * 0.6;
+  for (let r = maxR; r > 0; r -= 6) {
+    const t = r / maxR;
+    const c = lerpColor(inner, outer, 1 - t);
+    fill(red(c), green(c), blue(c), 255);
+    ellipse(0, 0, r * 2, r * 2);
+  }
+}
+
+function drawStars(now) {
+  const hourFloat = now.hour24 + now.minuteExact / 60;
+  const nightWeight = constrain(
+    sin(map(hourFloat, 18, 30, 0, 180, true)) ** 2, 0, 1
+  );
   push();
-  translate(MARGIN_PX, MARGIN_PX);
-  stroke(0);
-  strokeWeight(1);
-
-  const nowMs = millis();
-  cleanupRipples(nowMs);
-
-  // hover cell (grid coords)
-  const gx = (mouseX - MARGIN_PX) / cellW;
-  const gy = (mouseY - MARGIN_PX) / cellH;
-  const hoveredC = floor(gx);
-  const hoveredR = floor(gy);
-  const hoverValid =
-    hoveredC >= 0 && hoveredC < GRID_COLS &&
-    hoveredR >= 0 && hoveredR < GRID_ROWS;
-
-  for (let r = 0; r < GRID_ROWS; r++) {
-    for (let c = 0; c < GRID_COLS; c++) {
-      const x = c * cellW;
-      const y = r * cellH;
-
-      const baseCode = targetMask[r][c];
-
-      const rippleCode = rippleDesiredCode(baseCode, r, c, nowMs);
-
-      const desired = (rippleCode !== null) ? rippleCode : baseCode;
-
-      if (!flipInfo[r][c] && currentMask[r][c] !== desired) {
-        flipInfo[r][c] = {
-          from: currentMask[r][c],
-          to: desired,
-          startMs: nowMs,
-          duration: FLIP_DURATION
-        };
-      }
-
-      const info = flipInfo[r][c];
-      if (info) {
-        const t = constrain((nowMs - info.startMs) / info.duration, 0, 1);
-        const squash = abs(cos(PI * t));
-        const midwayCol = (t < 0.5) ? info.from : info.to;
-
-        push();
-        translate(x + cellW / 2, y + cellH / 2);
-        scale(1, squash);
-        fill(colorFor(midwayCol));
-        rectMode(CENTER);
-        rect(0, 0, cellW, cellH);
-        pop();
-
-        noFill();
-        rect(x, y, cellW, cellH);
-
-        if (t >= 1) {
-          currentMask[r][c] = info.to;
-          flipInfo[r][c] = null;
-        }
-      } else {
-        let drawCode = currentMask[r][c];
-
-        if (hoverValid && r === hoveredR && c === hoveredC && baseCode === C_WHITE) {
-          drawCode = C_RED;
-        }
-
-        fill(colorFor(drawCode));
-        rect(x, y, cellW, cellH);
-
-        noFill();
-        rect(x, y, cellW, cellH);
-      }
-    }
+  noStroke();
+  for (const st of stars) {
+    const twinkle = 0.6 + 0.4 * sin((frameCount * 0.6) + st.x * 0.01 + st.y * 0.01);
+    fill(255, st.a * nightWeight * twinkle);
+    ellipse(st.x * 0.4, st.y * 0.4, st.s, st.s);
   }
   pop();
 }
 
-function colorFor(code) {
-  if (code === C_BLACK) return 0;                
-  if (code === C_RED)   return color(220, 0, 0); 
-  return 255;
+function drawHorizonOrb(now) {
+  const tDay = (now.hour24 + now.minuteExact / 60) / 24.0;
+  const angle = map(tDay, 0, 1, -90, 270);
+  const r = orbitR.face * 1.05;
+  const dayAmt = constrain(map(now.hour24, 6, 18, 0, 1), 0, 1);
+  const sunC = color(255, 210, 100, 220 * dayAmt);
+  const moonC = color(200, 220, 255, 200 * (1 - dayAmt));
+
+  push();
+  noStroke();
+  for (let i = 10; i >= 1; i--) {
+    const rr = i * 4;
+    const a = 8 * i;
+    fill(255, 220, 160, a * dayAmt);
+    ellipse(r * cos(angle), r * sin(angle), rr, rr);
+    fill(200, 220, 255, a * (1 - dayAmt));
+    ellipse(r * cos(angle + 180), r * sin(angle + 180), rr, rr);
+  }
+  fill(sunC);  ellipse(r * cos(angle),        r * sin(angle),        12, 12);
+  fill(moonC); ellipse(r * cos(angle + 180),  r * sin(angle + 180),  10, 10);
+  pop();
 }
 
-function rippleDesiredCode(baseCode, r, c, nowMs) {
-  for (let i = 0; i < ripples.length; i++) {
-    const rp = ripples[i];
-    const dt = (nowMs - rp.startMs) / 1000; 
-    if (dt < 0) continue;
-    const radius = dt * RIPPLE_SPEED;  
-    const dr = dist(c, r, rp.c, rp.r); 
-
-    if (abs(dr - radius) <= RIPPLE_BAND) {
-      if (baseCode === C_WHITE) return C_BLACK;
-      if (baseCode === C_BLACK) return C_WHITE;
-      if (baseCode === C_RED)   return C_RED; 
-    }
+function drawGlassDial(d) {
+  push();
+  for (let i = 8; i >= 1; i--) {
+    stroke(255, 255, 255, 10 + i * 4);
+    strokeWeight(10 - i);
+    noFill();
+    ellipse(0, 0, d * 2 + i * 8, d * 2 + i * 8);
   }
-  return null;
+  noStroke();
+  fill(255, 255, 255, 22);
+  ellipse(0, 0, d * 2, d * 2);
+  const g = drawingContext.createRadialGradient(0, 0, d * 0.1, -d * 0.25, -d * 0.25, d * 1.2);
+  g.addColorStop(0, 'rgba(255,255,255,0.15)');
+  g.addColorStop(1, 'rgba(255,255,255,0.00)');
+  drawingContext.fillStyle = g;
+  ellipse(0, 0, d * 2, d * 2);
+  pop();
 }
 
-function updateTimeMask() {
-  const now = new Date();
-  const hh = nf(now.getHours(), 2);
-  const mm = nf(now.getMinutes(), 2);
-  const ss = now.getSeconds();
-  const colonOn = (ss % 2 === 1);
+function drawTicksAndNumerals() {
+  push();
+  stroke(255, 230);
+  fill(255);
+  const outer = orbitR.seconds;
+  const innerMinor = outer - 10;
+  const innerMajor = outer - 18;
 
-  const renderKey = `${hh}:${mm}:${colonOn ? 1 : 0}`;
-  if (renderKey === lastRenderKey) return false;
-  lastRenderKey = renderKey;
-
-  const glyphW = 5, glyphH = 7, colonW = 1;
-  const chars = [hh[0], hh[1], ':', mm[0], mm[1]];
-
-  const baseCols = glyphW * 4 + colonW + 4;
-  const baseRows = glyphH;
-
-  const maxCols = floor(GRID_COLS * 0.8);
-  const maxRows = floor(GRID_ROWS * 0.6);
-  const S = max(1, min(floor(maxCols / baseCols), floor(maxRows / baseRows)));
-
-  const patternCols = baseCols * S;
-  const patternRows = baseRows * S;
-  const startC = floor((GRID_COLS - patternCols) / 2);
-  const startR = floor((GRID_ROWS - patternRows) / 2);
-
-  // clear to white
-  for (let r = 0; r < GRID_ROWS; r++)
-    for (let c = 0; c < GRID_COLS; c++)
-      targetMask[r][c] = C_WHITE;
-
-  let cursor = 0;
-  for (let i = 0; i < chars.length; i++) {
-    const ch = chars[i];
-    const glyph = FONT5x7[ch];
-    const w = (ch === ':') ? colonW : glyphW;
-
-    for (let gy = 0; gy < 7; gy++) {
-      const row = glyph[gy];
-      for (let gx = 0; gx < w; gx++) {
-        if (row[gx] === '1') {
-          const colorCode = (ch === ':' ? (colonOn ? C_RED : C_WHITE) : C_BLACK);
-          for (let sy = 0; sy < S; sy++) {
-            for (let sx = 0; sx < S; sx++) {
-              const rr = startR + gy * S + sy;
-              const cc = startC + (cursor + gx) * S + sx;
-              if (rr >= 0 && rr < GRID_ROWS && cc >= 0 && cc < GRID_COLS)
-                targetMask[rr][cc] = colorCode;
-            }
-          }
-        }
-      }
-    }
-    cursor += w + 1;
+  for (let i = 0; i < 60; i++) {
+    const a = -90 + i * 6;
+    const isMajor = i % 5 === 0;
+    const r1 = isMajor ? innerMajor : innerMinor;
+    const r2 = outer;
+    strokeWeight(isMajor ? 2.5 : 1.2);
+    line(r1 * cos(a), r1 * sin(a), r2 * cos(a), r2 * sin(a));
   }
-  
-  const nowMs = millis();
-  for (let r = 0; r < GRID_ROWS; r++) {
-    for (let c = 0; c < GRID_COLS; c++) {
-      const baseline = targetMask[r][c];
-      if (!flipInfo[r][c] && currentMask[r][c] !== baseline) {
-        flipInfo[r][c] = {
-          from: currentMask[r][c],
-          to: baseline,
-          startMs: nowMs + random(RANDOM_STAGGER),
-          duration: FLIP_DURATION
-        };
-      }
-    }
+
+  textSize(fontSize * 0.7);
+  noStroke();
+  const numR = orbitR.seconds - 36;
+  const numerals = ['12','1','2','3','4','5','6','7','8','9','10','11'];
+  for (let i = 0; i < 12; i++) {
+    const a = -90 + i * 30;
+    push();
+    translate(numR * cos(a), numR * sin(a));
+    rotate(a + 90);
+    fill(255, 235);
+    text(numerals[i], 0, 0);
+    pop();
   }
-  return true;
+  pop();
 }
 
-function mousePressed() {
-  const gx = (mouseX - MARGIN_PX) / cellW;
-  const gy = (mouseY - MARGIN_PX) / cellH;
-  const c = floor(gx);
-  const r = floor(gy);
-  if (c >= 0 && c < GRID_COLS && r >= 0 && r < GRID_ROWS) {
-    ripples.push({ r, c, startMs: millis() });
-  }
+function drawOrbit(r, w, col) {
+  push();
+  noFill();
+  stroke(col);
+  strokeWeight(w);
+  ellipse(0, 0, r * 2, r * 2);
+  pop();
 }
 
-// Cleanup old ripples
-function cleanupRipples(nowMs) {
-  const maxGridRadius = sqrt(GRID_COLS * GRID_COLS + GRID_ROWS * GRID_ROWS);
-  const maxTravelMs = (maxGridRadius / RIPPLE_SPEED) * 1000;
-  const cutoff = maxTravelMs + RIPPLE_MAX_AGE_MS;
-  ripples = ripples.filter(rp => (nowMs - rp.startMs) <= cutoff);
+function drawComet(angle, radius, headSize, headColor, tailLen, tailStep) {
+  push();
+  noStroke();
+  for (let i = tailLen; i >= 1; i--) {
+    const tAng = angle - i * tailStep;
+    const p = polar(radius, tAng);
+    const alpha = map(i, 1, tailLen, 200, 0);
+    const sz = map(i, 1, tailLen, headSize * 0.7, 2);
+    fill(red(headColor), green(headColor), blue(headColor), alpha);
+    ellipse(p.x, p.y, sz, sz);
+  }
+  pop();
+
+  push();
+  noStroke();
+  const headP = polar(radius, angle);
+  for (let g = 10; g >= 1; g--) {
+    fill(red(headColor), green(headColor), blue(headColor), 12 + g * 4);
+    ellipse(headP.x, headP.y, headSize + g * 3, headSize + g * 3);
+  }
+  fill(255);
+  ellipse(headP.x, headP.y, headSize * 0.6, headSize * 0.6);
+  fill(headColor);
+  ellipse(headP.x, headP.y, headSize * 0.4, headSize * 0.4);
+  pop();
+}
+
+function drawCenterHub() {
+  push();
+  noStroke();
+  for (let i = 8; i >= 1; i--) {
+    fill(255, 255, 255, 12 + i * 8);
+    ellipse(0, 0, 16 + i * 4, 16 + i * 4);
+  }
+  fill(255);
+  ellipse(0, 0, 8, 8);
+  pop();
+}
+
+function drawVignette() {
+  push();
+  noStroke();
+  const g = drawingContext.createRadialGradient(0, 0, 0, 0, 0, width * 0.8);
+  g.addColorStop(0.7, 'rgba(0,0,0,0)');
+  g.addColorStop(1.0, 'rgba(0,0,0,0.25)');
+  drawingContext.fillStyle = g;
+  rectMode(CENTER);
+  rect(0, 0, width * 2, height * 2);
+  pop();
+}
+
+function polar(r, a) {
+  return { x: r * cos(a), y: r * sin(a) };
 }
