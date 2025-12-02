@@ -1,11 +1,14 @@
 title: GENCG
 description: Fall 2025
 remote_theme: pmarsceill/just-the-docs
-# Color scheme currently only supports "dark", "light"/nil (default), or a custom scheme that you define
-color_scheme: dark
+
+# Use the light theme (important for forcing white background)
+color_scheme: light
+
 # Enable or disable the site search
 # Supports true (default) or false
 search_enabled: true
+
 search:
   # Split pages into sections that can be searched individually
   # Supports 1 - 6, default: 2
