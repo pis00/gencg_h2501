@@ -1,14 +1,13 @@
 // Override styles for Just the Docs
-// Background full-page custom
+// White background + black text
 
 /* Full-page background */
 body {
-  background: linear-gradient(180deg, #04060f 0%, #0b1224 100%) !important;
-  background-attachment: fixed;
-  color: #f2f2f2; // testo chiaro
+  background: #ffffff !important;   // sfondo bianco
+  color: #000000 !important;        // testo nero
 }
 
-/* Make all main containers transparent so the background is visible */
+/* Force white background across all theme containers */
 .site-header,
 .main-content,
 .page-content,
@@ -20,15 +19,17 @@ body {
 .nav-list .nav-list,
 .site-nav,
 .footer {
-  background: transparent !important;
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
-/* Optional: improve text visibility for dark background */
-h1, h2, h3, h4, h5, h6, p, li, a {
-  color: #e6e6e6 !important;
+/* Ensure text elements stay black */
+h1, h2, h3, h4, h5, h6,
+p, li, a, span, div {
+  color: #000000 !important;
 }
 
-/* Optional: improve link color */
+/* Optional: slightly darker hover for links */
 a:hover {
-  color: #9bb6ff !important;
+  color: #333333 !important;
 }
