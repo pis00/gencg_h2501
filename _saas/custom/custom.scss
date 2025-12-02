@@ -1,1 +1,34 @@
-// https://pmarsceill.github.io/just-the-docs/docs/customization/#override-and-completely-custom-styles
+// Override styles for Just the Docs
+// Background full-page custom
+
+/* Full-page background */
+body {
+  background: linear-gradient(180deg, #04060f 0%, #0b1224 100%) !important;
+  background-attachment: fixed;
+  color: #f2f2f2; // testo chiaro
+}
+
+/* Make all main containers transparent so the background is visible */
+.site-header,
+.main-content,
+.page-content,
+.page-header,
+.site-footer,
+.sidebar,
+.nav-list,
+.nav-list-item,
+.nav-list .nav-list,
+.site-nav,
+.footer {
+  background: transparent !important;
+}
+
+/* Optional: improve text visibility for dark background */
+h1, h2, h3, h4, h5, h6, p, li, a {
+  color: #e6e6e6 !important;
+}
+
+/* Optional: improve link color */
+a:hover {
+  color: #9bb6ff !important;
+}
