@@ -3,7 +3,7 @@ const CANVAS_W = 900;
 const CANVAS_H = 800;
 
 function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
+  canvas = createCanvas(windowWidth, windowHeight);
   pixelDensity(2);
   noCursor();
 }
