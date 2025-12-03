@@ -1,1 +1,101 @@
-// https://pmarsceill.github.io/just-the-docs/docs/customization/#override-and-completely-custom-styles
+/* FULL WHITE THEME OVERRIDE FOR JUST THE DOCS */
+
+/* Base page */
+body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* SIDEBAR – COLONNA SINISTRA */
+.side-bar {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-right: 1px solid #000000 !important;
+}
+
+/* Sidebar title area */
+.side-bar .site-title,
+.side-bar .site-header {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+/* NAVIGATION LIST IN SIDEBAR */
+.nav-list,
+.nav-list-item,
+.nav-list .nav-list {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Normal links in sidebar */
+.nav-list .nav-list-link {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-left: 2px solid transparent !important;
+}
+
+/* Hover links in sidebar */
+.nav-list .nav-list-link:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-left: 2px solid #000000 !important;
+}
+
+/* ACTIVE PAGE LINK (TAB SELEZIONATO) */
+.nav-list .nav-list-link.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-left: 3px solid #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* HEADER IN ALTO (BARRA GENCG + SEARCH) */
+.site-header {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+/* MAIN CONTENT AREA */
+.main-content,
+.page-content,
+.page-header {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* FOOTER */
+.site-footer,
+.footer {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-top: 1px solid #000000 !important;
+}
+
+/* GENERAL TEXT */
+h1, h2, h3, h4, h5, h6,
+p, li, a, span, div {
+  color: #000000 !important;
+}
+
+/* SEARCH BAR */
+.search {
+  background: #ffffff !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+.search-input-wrap {
+  background: #ffffff !important;
+  border: 1px solid #000000 !important;
+}
+
+#search-input {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.search-label {
+  color: #000000 !important;
+}
