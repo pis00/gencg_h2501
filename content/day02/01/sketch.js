@@ -1,6 +1,4 @@
 const SEED = 99173;
-const CANVAS_W = 900;
-const CANVAS_H = 800;
 
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
