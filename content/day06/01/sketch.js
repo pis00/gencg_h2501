@@ -1,85 +1,54 @@
-const SEED = 99173;
-const CANVAS_W = 900;
-const CANVAS_H = 800;
+let skin;
 
 function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
-  pixelDensity(2);
-  noCursor();
+  canvas = createCanvas(windowWidth, windowHeight);
+  skin = color(255, 190, 200); // pink skin
+  noLoop();
 }
 
 function draw() {
-  background(255);
+  background(240);
+  translate(width / 2, height / 2);
 
-  const t = constrain(mouseY / height, 0, 1);
-  const ease = t * t * (3 - 2 * t); 
+  const faceW = 200;
+  const faceH = 250;
+  const earW = 40;
+  const earH = 70;
 
-  const cols = max(2, round(map(constrain(mouseX, 0, width), 0, width, 6, 40)));
-  const cellW = width / cols;
-  const rows = max(2, round(height / cellW));
-  const cellH = height / rows;
-  const cellSize = min(cellW, cellH);
-
-  const s = lerp(cellSize * 0.6, cellSize * 0.98, ease);
-
-  noiseSeed(SEED);
-  randomSeed(SEED);
-
+  // Ears
   noStroke();
+  fill(skin);
+  ellipse(-faceW * 0.55, 0, earW, earH);
+  ellipse(faceW * 0.55, 0, earW, earH);
+
+  // Face
+  ellipse(0, 0, faceW, faceH);
+
+  // Hair
   fill(0);
+  arc(0, -faceH * 0.15, faceW * 1.1, faceH * 0.9, PI, 0, CHORD);
 
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
+  // Eyes
+  const eyeY = -faceH * 0.1;
+  const eyeX = faceW * 0.2;
 
-      const gx = (i + 0.5) * cellW;
-      const gy = (j + 0.5) * cellH;
+  fill(255);
+  ellipse(-eyeX, eyeY, 40, 25);
+  ellipse(eyeX, eyeY, 40, 25);
 
+  fill(0);
+  ellipse(-eyeX, eyeY, 15, 15);
+  ellipse(eyeX, eyeY, 15, 15);
 
-      const offAmp = cellSize * 1.1;
-      const ox = (noise(i * 0.31, j * 0.29) - 0.5) * 2 * offAmp;
-      const oy = (noise(i * 0.33 + 80, j * 0.27 + 80) - 0.5) * 2 * offAmp;
-
-      const sx = gx + ox;
-      const sy = gy + oy;
-      const x = lerp(sx, gx, ease);
-      const y = lerp(sy, gy, ease);
-
-      const baseRot = (noise(i * 0.37 + 200, j * 0.41 + 200) - 0.5) * PI;
-      const rot = lerp(baseRot, 0, ease);
-
-      const startIsA = noise(i * 0.5 + 500, j * 0.5 + 500) > 0.5;
-      const targetIsA = ((i + j) % 2) === 1;
-
-      const triA = [
-        { x: -s / 2, y: -s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-      const triB = [
-        { x:  s / 2, y:  s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-
-      const S = startIsA ? triA : triB;
-      const T = targetIsA ? triA : triB;
-
-      const v0 = { x: lerp(S[0].x, T[0].x, ease), y: lerp(S[0].y, T[0].y, ease) };
-      const v1 = { x: lerp(S[1].x, T[1].x, ease), y: lerp(S[1].y, T[1].y, ease) };
-      const v2 = { x: lerp(S[2].x, T[2].x, ease), y: lerp(S[2].y, T[2].y, ease) };
-
-      push();
-      translate(x, y);
-      rotate(rot);
-      triangle(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-      pop();
-    }
-  }
-
-  push();
+  // Mouth
   noFill();
-  stroke(0);
+  stroke(120, 0, 40);
+  strokeWeight(4);
+  arc(0, faceH * 0.2, 80, 40, 0, PI);
+
+  // Nose
+  stroke(180);
   strokeWeight(2);
-  circle(mouseX, mouseY, 14);
-  pop();
+  noFill();
+  line(0, 0, 0, 30);
 }
