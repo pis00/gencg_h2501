@@ -1,7 +1,7 @@
 let points = [];
 
 function setup() {
-  createCanvas(600, 400);
+  canvas = createCanvas(windowWidth, windowHeight);
   background(240);
 }
 
