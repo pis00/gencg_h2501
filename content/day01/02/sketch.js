@@ -1,20 +1,24 @@
+const WHITE_FRAME = 10;
 let grid = [];
-let cols = 10;
-let rows = 10;
-let spacing = 50;
+let spacing = 60;
 let dotSize = 20;
+
+let cols, rows;
 
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
 
+  cols = floor(width / spacing);
+  rows = floor(height / spacing);
 
+  // Genera la griglia
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       grid.push({
-        x: 50 + x * spacing,
-        y: 50 + y * spacing,
-        color: color(0), 
-        clicked: false 
+        x: spacing / 2 + x * spacing,   
+        y: spacing / 2 + y * spacing,
+        color: color(0),
+        clicked: false
       });
     }
   }
@@ -36,12 +40,15 @@ function mousePressed() {
   for (let p of grid) {
     let d = dist(mouseX, mouseY, p.x, p.y);
 
-
     if (d < dotSize / 2 && !p.clicked) {
       p.color = color(random(255), random(255), random(255));
-      p.clicked = true;  
+      p.clicked = true;
       drawGrid();
       break;
     }
   }
+}
+
+function windowResized() {
+  setup(); 
 }
