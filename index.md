@@ -1,11 +1,10 @@
 ---
-title: index
+title: Index
 nav_order: 0
 ---
 
-# Index
+# Jurnal
 
-## Jurnal
+## Luca Pisano
 
-### Luca Pisano
 
