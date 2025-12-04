@@ -1,4 +1,3 @@
-const WHITE_FRAME = 10;
 let points = [];
 
 function setup() {

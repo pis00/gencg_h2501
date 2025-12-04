@@ -1,4 +1,3 @@
-const WHITE_FRAME = 10;
 let grid = [];
 let spacing = 60;
 let dotSize = 20;
