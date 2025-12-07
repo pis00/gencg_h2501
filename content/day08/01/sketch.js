@@ -6,10 +6,6 @@ let options = {
   segmentationThreshold: 0.5 // 0–1, più alto = più sicuro ma meno sensibile
 };
 
-function preload() {
-  // Carichiamo il modello BodyPix
-  bodypix = ml5.bodyPix(options);
-}
 
 function setup() {
   createCanvas(640, 480);
@@ -19,12 +15,24 @@ function setup() {
   video = createCapture(VIDEO, videoReady);
   video.size(width, height);
   video.hide(); // non mostriamo il video direttamente
+
+  // ✅ Carichiamo il modello BodyPix qui, NON in preload
+  bodypix = ml5.bodyPix(options, modelReady);
+}
+
+function modelReady() {
+  console.log("BodyPix model loaded");
+  // se il video è già pronto, partiamo subito
+  // (se non è ancora pronto, partirà da videoReady)
 }
 
 function videoReady() {
-  console.log("Video ready, starting segmentation...");
-  // Avvia il loop di segmentazione
-  bodypix.segment(video, gotResults);
+  console.log("Video ready");
+  // Avvia il loop di segmentazione SOLO se bodypix esiste già
+  if (bodypix) {
+    console.log("Starting segmentation...");
+    bodypix.segment(video, gotResults);
+  }
 }
 
 function gotResults(error, result) {
