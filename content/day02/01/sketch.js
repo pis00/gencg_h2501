@@ -7,7 +7,6 @@ function setup() {
 }
 
 function draw() {
-  drawBorder2D();
   background(255);
 
   const t = constrain(mouseY / height, 0, 1);
@@ -32,7 +31,6 @@ function draw() {
 
       const gx = (i + 0.5) * cellW;
       const gy = (j + 0.5) * cellH;
-
 
       const offAmp = cellSize * 1.1;
       const ox = (noise(i * 0.31, j * 0.29) - 0.5) * 2 * offAmp;
@@ -81,4 +79,6 @@ function draw() {
   strokeWeight(2);
   circle(mouseX, mouseY, 14);
   pop();
+
+  drawBorder2D();
 }

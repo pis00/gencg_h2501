@@ -37,7 +37,6 @@ function initBall() {
 }
 
 function draw() {
-  drawBorder2D();
   let dt = deltaTime / 1000;
   ballX += ballVelX * dt;
 
@@ -64,6 +63,8 @@ function draw() {
 
   // contatori in alto a destra
   drawCounters();
+
+  drawBorder2D();
 }
 
 function onWallHit() {

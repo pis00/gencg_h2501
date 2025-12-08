@@ -1,4 +1,3 @@
-
 const GRID_COLS = 40;
 const GRID_ROWS = 24;
 const MARGIN_PX = 20;
@@ -67,7 +66,6 @@ function tick() {
 }
 
 function drawGrid() {
-  drawBorder2D();
   background(255);
   push();
   translate(MARGIN_PX, MARGIN_PX);
@@ -143,6 +141,7 @@ function drawGrid() {
     }
   }
   pop();
+  drawBorder2D();
 }
 
 function colorFor(code) {
