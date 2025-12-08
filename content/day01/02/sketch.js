@@ -1,12 +1,18 @@
 let grid = [];
-let spacing = 60;
-let dotSize = 20;
+const spacing = 60;
+const dotSize = 20;
 
 let cols, rows;
 
 function setup() {
-  drawBorder2D();
   canvas = createCanvas(windowWidth, windowHeight);
+  initGrid();
+  drawGrid();
+}
+
+function initGrid() {
+  // Svuota la griglia e ricalcola colonne/righe
+  grid = [];
 
   cols = floor(width / spacing);
   rows = floor(height / spacing);
@@ -15,15 +21,13 @@ function setup() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       grid.push({
-        x: spacing / 2 + x * spacing,   
+        x: spacing / 2 + x * spacing,
         y: spacing / 2 + y * spacing,
         color: color(0),
         clicked: false
       });
     }
   }
-
-  drawGrid();
 }
 
 function drawGrid() {
@@ -34,6 +38,8 @@ function drawGrid() {
     noStroke();
     ellipse(p.x, p.y, dotSize, dotSize);
   }
+
+  drawBorder2D();
 }
 
 function mousePressed() {
@@ -43,12 +49,14 @@ function mousePressed() {
     if (d < dotSize / 2 && !p.clicked) {
       p.color = color(random(255), random(255), random(255));
       p.clicked = true;
-      drawGrid();
+      drawGrid();  // ridisegna griglia + bordo
       break;
     }
   }
 }
 
 function windowResized() {
-  setup(); 
+  resizeCanvas(windowWidth, windowHeight);
+  initGrid();
+  drawGrid();
 }
