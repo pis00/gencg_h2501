@@ -1,4 +1,3 @@
-
 let current = { face: 0, eyes: 0, nose: 0, ears: 0, hair: 0, mouth: 0 };
 let skin;
 
@@ -10,8 +9,9 @@ function setup() {
 }
 
 function draw() {
-  drawBorder2D();
   background(255);
+
+  push();
   translate(width / 2, height / 2);
 
   const faceW = 200;
@@ -26,6 +26,10 @@ function draw() {
   drawEyes(current.eyes, faceW, faceH);
   drawNose(current.nose, faceW, faceH);
   drawMouth(current.mouth, faceW, faceH);
+
+  pop();
+
+  drawBorder2D();
 }
 
 function mousePressed() {

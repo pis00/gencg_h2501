@@ -42,9 +42,6 @@ function updatePoints() {
 }
 
 function draw() {
-  
-  drawBorder2D();
-
   let p0 = points[segmentIndex];
   let p1 = points[(segmentIndex + 1) % points.length];
 
@@ -85,6 +82,8 @@ function draw() {
   // aggiorna angoli
   angle += angleSpeed;
   subAngle += subAngleSpeed;
+
+  drawBorder2D();
 }
 
 function windowResized() {

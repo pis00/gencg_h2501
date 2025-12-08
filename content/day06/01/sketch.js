@@ -7,8 +7,9 @@ function setup() {
 }
 
 function draw() {
-  drawBorder2D();
   background(255);
+
+  push();
   translate(width / 2, height / 2);
 
   const faceW = 200;
@@ -52,4 +53,8 @@ function draw() {
   strokeWeight(2);
   noFill();
   line(0, 0, 0, 30);
+
+  pop();
+
+  drawBorder2D();
 }

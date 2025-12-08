@@ -1,4 +1,3 @@
-
 let turns = 100;        // lots of turns
 let thickness = 10;     // line thickness (>= spacing implied by turns)
 
@@ -35,14 +34,13 @@ function prepareGeometry() {
 }
 
 function draw() {
-  drawBorder2D();
-  
   if (phase === "wait") {
     // show a clean red dot (no outline)
     background(255);
     noStroke();
     fill(255, 0, 0);
     circle(cx, cy, dotRadius * 2);
+    drawBorder2D();
     noLoop();            // pause here until the next click
     return;
   }
@@ -114,6 +112,8 @@ function draw() {
       // next frame will draw the dot in the "wait" branch
     }
   }
+
+  drawBorder2D();
 }
 
 function mousePressed() {

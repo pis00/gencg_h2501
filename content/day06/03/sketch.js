@@ -43,7 +43,6 @@ function gotResults(err, result){
 }
 
 function draw(){
-  drawBorder2D();
   background(16);
 
   if (video && video.elt && video.elt.readyState >= 2) {
@@ -123,6 +122,7 @@ function draw(){
     pop();
     drawHUD(eyeDist, degrees(angle), w, h);
   }
+    drawBorder2D();
 }
 
 // ---------------- utilities ----------------

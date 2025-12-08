@@ -9,6 +9,7 @@ function setup() {
 function draw() {
   background(255);
 
+  push();
   translate(width / 2, height / 2);
   rotate(-90);
 
@@ -55,6 +56,7 @@ function draw() {
       ellipse(x, y, smallDotSize, smallDotSize);
     }
   }
+  pop();
 
   drawBorder2D();
 }
