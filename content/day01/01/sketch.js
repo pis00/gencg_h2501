@@ -5,9 +5,10 @@ function setup() {
   background(255);
 }
 
-function draw() {
-}
+function draw() { 
   drawBorder2D();
+}
+ 
   
 function mousePressed() {
   let newPoint = createVector(mouseX, mouseY);
