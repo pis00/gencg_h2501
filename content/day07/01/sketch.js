@@ -21,6 +21,7 @@ function setup() {
 }
 
 function draw() {
+  drawBorder2D();
   background(0);
 
   video.loadPixels();

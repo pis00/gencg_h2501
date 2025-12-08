@@ -35,6 +35,8 @@ function prepareGeometry() {
 }
 
 function draw() {
+  drawBorder2D();
+  
   if (phase === "wait") {
     // show a clean red dot (no outline)
     background(255);

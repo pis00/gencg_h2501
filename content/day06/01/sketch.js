@@ -7,6 +7,7 @@ function setup() {
 }
 
 function draw() {
+  drawBorder2D();
   background(255);
   translate(width / 2, height / 2);
 

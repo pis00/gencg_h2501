@@ -5,6 +5,7 @@ let dotSize = 20;
 let cols, rows;
 
 function setup() {
+  drawBorder2D();
   canvas = createCanvas(windowWidth, windowHeight);
 
   cols = floor(width / spacing);

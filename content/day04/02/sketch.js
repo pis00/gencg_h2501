@@ -42,9 +42,9 @@ function updatePoints() {
 }
 
 function draw() {
-  // NIENTE background() → la linea non viene mai cancellata
+  
+  drawBorder2D();
 
-  // --- centro dell'orbita che si muove lungo i 4 lati (lerp) ---
   let p0 = points[segmentIndex];
   let p1 = points[(segmentIndex + 1) % points.length];
 

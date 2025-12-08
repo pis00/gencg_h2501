@@ -9,6 +9,7 @@ function setup() {
 }
 
 function draw() {
+  drawBorder2D();
   background(255);
 
   const t = constrain(mouseY / height, 0, 1);

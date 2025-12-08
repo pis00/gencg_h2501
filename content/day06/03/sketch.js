@@ -43,6 +43,7 @@ function gotResults(err, result){
 }
 
 function draw(){
+  drawBorder2D();
   background(16);
 
   if (video && video.elt && video.elt.readyState >= 2) {

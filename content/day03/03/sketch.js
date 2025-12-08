@@ -37,6 +37,7 @@ function initBall() {
 }
 
 function draw() {
+  drawBorder2D();
   let dt = deltaTime / 1000;
   ballX += ballVelX * dt;
 
