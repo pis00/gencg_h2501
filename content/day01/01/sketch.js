@@ -21,4 +21,5 @@ function mousePressed() {
     let p = points[i];
     line(newPoint.x, newPoint.y, p.x, p.y);
   }
+  drawBorder2D();
 }
