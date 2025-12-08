@@ -7,7 +7,7 @@ function setup() {
 }
 
 function draw() {
-  background(240);
+  background(255);
 
   translate(width / 2, height / 2);
   rotate(-90); // 0° verso l'alto
@@ -67,9 +67,7 @@ function draw() {
     }
   }
 
-  // (opzionale) punto centrale di riferimento
-  fill(0);
-  ellipse(0, 0, radius * 0.05, radius * 0.05);
+  // --- PUNTINO CENTRALE RIMOSSO ---
 }
 
 function windowResized() {

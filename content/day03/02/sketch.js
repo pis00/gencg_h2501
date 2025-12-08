@@ -67,7 +67,7 @@ function tick() {
 }
 
 function drawGrid() {
-  background(240);
+  background(255);
   push();
   translate(MARGIN_PX, MARGIN_PX);
   stroke(0);

@@ -10,7 +10,7 @@ function setup() {
 }
 
 function draw() {
-  background(245);
+  background(255);
   translate(width / 2, height / 2);
 
   const faceW = 200;

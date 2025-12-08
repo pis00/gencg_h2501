@@ -54,7 +54,7 @@ function draw() {
     onWallHit();
   }
 
-  background(240);
+  background(255);
 
   // pallina
   fill(ballColor);

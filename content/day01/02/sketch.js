@@ -26,7 +26,7 @@ function setup() {
 }
 
 function drawGrid() {
-  background(240);
+  background(255);
 
   for (let p of grid) {
     fill(p.color);
