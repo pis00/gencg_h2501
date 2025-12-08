@@ -21,7 +21,6 @@ function setup() {
 }
 
 function draw() {
-  drawBorder2D();
   background(0);
 
   video.loadPixels();
@@ -52,6 +51,8 @@ function draw() {
   }
 
   pop();
+  
+  drawBorder2D();
 }
 
 function windowResized() {

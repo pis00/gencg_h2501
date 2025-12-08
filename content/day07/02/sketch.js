@@ -32,7 +32,6 @@ function setup() {
 }
 
 function draw() {
-  drawBorder2D();
   background(0);
 
   video.loadPixels();
@@ -66,11 +65,14 @@ function draw() {
   }
 
   pop();
+  
+
 
   // se il mouse è premuto, dipingiamo in tempo reale
   if (mouseIsPressed && mouseButton === LEFT) {
     paintAt(mouseX, mouseY);
-  }
+  }  
+  drawBorder2D();
 }
 
 // inizio del tratto: disegno subito

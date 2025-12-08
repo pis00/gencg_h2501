@@ -1,4 +1,3 @@
-
 let video, faceapi, detections = [];
 let libLoaded = false, modelIsReady = false;
 
@@ -47,14 +46,23 @@ function draw(){
 
   if (video && video.elt && video.elt.readyState >= 2) {
     push(); translate(width,0); scale(-1,1); image(video,0,0,width,height); pop();
-  } else { drawStatus("Starting camera…"); return; }
+  } else {
+    drawStatus("Starting camera…");
+    drawBorder2D();
+    return;
+  }
 
-  if (!libLoaded || !modelIsReady) { drawStatus("Loading ml5 / model…"); return; }
+  if (!libLoaded || !modelIsReady) {
+    drawStatus("Loading ml5 / model…");
+    drawBorder2D();
+    return;
+  }
 
   if (detections.length === 0) {
     drawStatus("No face detected — click to randomize");
     drawCartoonFace(s.cx ?? width/2, s.cy ?? height/2, s.w, s.h, s.a);
     if (SHOW_DEBUG) drawHUD(0, 0, s.w, s.h);
+    drawBorder2D();
     return;
   }
 
@@ -122,7 +130,8 @@ function draw(){
     pop();
     drawHUD(eyeDist, degrees(angle), w, h);
   }
-    drawBorder2D();
+
+  drawBorder2D();
 }
 
 // ---------------- utilities ----------------
@@ -297,4 +306,4 @@ function drawMouth(type, w, h) {
     case 3: noStroke(); fill(120,0,40); ellipse(0,y+4,32,40); fill(255,180,180); ellipse(0,y+16,30,14); break;
     case 4: noFill(); stroke(120,0,40); arc(0,y,90,50,0,PI); stroke(255); strokeWeight(2); line(-34,y,34,y); for(let i=-4;i<=4;i++){const x=map(i,-4,4,-30,30); line(x,y,x,y+14);} break;
   }
-}2221111
+}
