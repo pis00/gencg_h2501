@@ -4,9 +4,9 @@
 
 ### Escher tessellations
 
-![Example Image](content/day02/Grid.jpg)
-
 Escher’s tessellations inspired me through the way he transforms a single recognizable shape into a seamless, interconnected pattern, where each element becomes part of a larger visual system. His work shows how structure can emerge from carefully constructed relationships, even when the overall composition appears intricate or dynamic. This approach influenced my thinking by showing me how users could be encouraged to either align shapes so they fit together or distort them in ways that reveal new patterns.
+
+![Example Image](content/day02/Grid.jpg)
 
 ### My sketch
 

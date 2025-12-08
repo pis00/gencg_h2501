@@ -3,9 +3,10 @@
 ## Computing without computer
 
 ### Sollewit: Wall drawing
-![Example Image](content/day01/test.jpg)
 
 Sol LeWitt was a central figure in Conceptual Art, known for creating wall drawings and structures based on written instructions that others could execute. This focus on rules and processes gives me useful inspiration for Computing Without Computers, because his work shows that a complex result can come from simple instructions applied step by step. In my view, LeWitt demonstrates that the idea and the procedure behind an artwork can be as important as the final form, which aligns closely with the logic-based thinking we explore when computing without using a digital device.
+
+![Example Image](content/day01/test.jpg)
 
 ### My sketch
 
