@@ -109,26 +109,27 @@ function drawCounters() {
   textSize(16);
   textAlign(LEFT, TOP);
 
+  // nero
   fill(0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
   text("= " + blackHits, x + 18, y);
 
   y += lineSpacing;
+
+  // rosso
   fill(255, 0, 0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
   text("= " + redHits, x + 18, y);
 
   y += lineSpacing;
+
+  // verde
   fill(0, 255, 0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
   text("= " + greenHits, x + 18, y);
-
-  y += lineSpacing * 2;
-  fill(0);
-  text(`Time: ${hours} : ${minutes} : ${seconds}`, x, y);
 }
 
 function windowResized() {
