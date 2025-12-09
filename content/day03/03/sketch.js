@@ -74,6 +74,9 @@ function onTick() {
   // ogni rimbalzo = 1 secondo
   seconds++;
 
+  // ogni rimbalzo aumenta il contatore nero (totale rimbalzi)
+  blackHits++;
+
   // gestione rollover secondi/minuti/ore
   if (seconds >= 60) {
     seconds = 0;
@@ -81,11 +84,9 @@ function onTick() {
 
     ballColor = color(255, 0, 0);
     redHits++;
-  }
-  else {
+  } else {
     // secondi normali
     ballColor = color(0);
-    blackHits++;
   }
 
   if (minutes >= 60) {
