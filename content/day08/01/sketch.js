@@ -2,33 +2,28 @@ let video;
 let bodypix;
 let segmentation;
 let options = {
-  outputStride: 8,          // qualità/dettaglio
-  segmentationThreshold: 0.5 // 0–1, più alto = più sicuro ma meno sensibile
+  outputStride: 8,
+  segmentationThreshold: 0.5
 };
 
-
 function setup() {
-  createCanvas(640, 480);
+  // canvas a tutta “area sketch” come gli altri giorni
+  createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
-  // Webcam
   video = createCapture(VIDEO, videoReady);
   video.size(width, height);
-  video.hide(); // non mostriamo il video direttamente
+  video.hide();
 
-  // ✅ Carichiamo il modello BodyPix qui, NON in preload
   bodypix = ml5.bodyPix(options, modelReady);
 }
 
 function modelReady() {
   console.log("BodyPix model loaded");
-  // se il video è già pronto, partiamo subito
-  // (se non è ancora pronto, partirà da videoReady)
 }
 
 function videoReady() {
   console.log("Video ready");
-  // Avvia il loop di segmentazione SOLO se bodypix esiste già
   if (bodypix) {
     console.log("Starting segmentation...");
     bodypix.segment(video, gotResults);
@@ -41,27 +36,22 @@ function gotResults(error, result) {
     return;
   }
 
-  // Salviamo il risultato globale
   segmentation = result;
-
-  // Chiamiamo di nuovo segment per aggiornare continuamente
   bodypix.segment(video, gotResults);
 }
 
 function draw() {
-  background(255); // bianco di default
+  background(255);
 
-  // Se modello non pronto o segmentazione ancora nulla
   if (!segmentation || !segmentation.backgroundMask) {
     fill(0);
     textAlign(CENTER, CENTER);
     textSize(16);
     text("Caricamento modello / segmentazione...", width / 2, height / 2);
+    drawBorder2D();
     return;
   }
 
-  // Otteniamo la maschera di background/persona
-  // backgroundMask: sfondo trasparente, persona opaca
   let maskImg = segmentation.backgroundMask;
 
   maskImg.loadPixels();
@@ -70,18 +60,14 @@ function draw() {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let index = (x + y * width) * 4;
-
-      // Alpha della maschera: >0 = pixel della persona
       let a = maskImg.pixels[index + 3];
 
       if (a > 0) {
-        // PIXEL DELLA PERSONA → nero
-        pixels[index + 0] = 0;   // R
-        pixels[index + 1] = 0;   // G
-        pixels[index + 2] = 0;   // B
-        pixels[index + 3] = 255; // alpha
+        pixels[index + 0] = 0;
+        pixels[index + 1] = 0;
+        pixels[index + 2] = 0;
+        pixels[index + 3] = 255;
       } else {
-        // SFONDO → bianco
         pixels[index + 0] = 255;
         pixels[index + 1] = 255;
         pixels[index + 2] = 255;
@@ -92,4 +78,9 @@ function draw() {
 
   updatePixels();
   drawBorder2D();
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  video.size(width, height);
 }
