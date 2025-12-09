@@ -91,4 +91,5 @@ function draw() {
   }
 
   updatePixels();
+  drawBorder2D();
 }
