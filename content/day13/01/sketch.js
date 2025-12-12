@@ -229,4 +229,5 @@ function draw() {
       }
     }
   }
+  drawBorder2D();
 }
