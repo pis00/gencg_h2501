@@ -15,27 +15,24 @@ let startedSegmentation = false;
 const alphaThreshold = 40;
 
 // grid / letters
-let cellSize = 8;        // celle un po' più grandi → meno colonne, più FPS
+let cellSize = 8;
 let cols, rows;
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-let charGrid = [];       // [col][row] carattere fisso per ogni cella
+let charGrid = [];
 
-// video size
 let vidW = 320;
 let vidH = 240;
 
-// area dove disegnare le lettere (stesso aspect del video)
 let gridX, gridY, gridW, gridH;
 
-// offset e velocità per ogni colonna (pioggia verticale)
 let colOffset = [];
 let colSpeed = [];
 
 function setup() {
+  // Initialize canvas and video capture
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
-  // Webcam
   video = createCapture(VIDEO, () => {
   });
   video.size(vidW, vidH);
@@ -50,7 +47,7 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // BodyPix
+  // Load BodyPix model
   bodypix = ml5.bodyPix(options, () => {
     modelReadyFlag = true;
     tryStartSegmentation();
@@ -66,6 +63,7 @@ function windowResized() {
   initColumnsAndChars();
 }
 
+// Calculate grid size and position based on canvas and video aspect ratio
 function updateGridArea() {
   let canvasRatio = width / height;
   let videoRatio = vidW / vidH;
@@ -85,6 +83,7 @@ function updateGridArea() {
   rows = floor(gridH / cellSize);
 }
 
+// Initialize vertical rain offsets, speeds, and character grid
 function initColumnsAndChars() {
   colOffset = [];
   colSpeed = [];
@@ -93,16 +92,17 @@ function initColumnsAndChars() {
   if (!cols || !rows) return;
 
   for (let c = 0; c < cols; c++) {
-    colOffset[c] = random(0, gridH);      // posizione iniziale del “nastro”
-    colSpeed[c]  = random(1.5, 3);        // velocità un po' più lenta
+    colOffset[c] = random(0, gridH);
+    colSpeed[c]  = random(1.5, 3);
 
     charGrid[c] = [];
     for (let r = 0; r < rows; r++) {
-      charGrid[c][r] = randomChar();      // lettera iniziale per ogni cella
+      charGrid[c][r] = randomChar();
     }
   }
 }
 
+// Start segmentation if model and video are ready
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
@@ -110,6 +110,7 @@ function tryStartSegmentation() {
   }
 }
 
+// Continuously receive segmentation results
 function gotResults(error, result) {
   if (error) {
     console.error(error);
@@ -123,7 +124,7 @@ function randomChar() {
   return letters.charAt(floor(random(letters.length)));
 }
 
-// controlla se (px,py) è dentro la persona usando un intorno 5x5
+// Check if pixel is inside the person mask with a 5x5 neighborhood
 function isInsideMask(maskImg, px, py) {
   let mW = maskImg.width;
   let mH = maskImg.height;
@@ -145,6 +146,7 @@ function isInsideMask(maskImg, px, py) {
 }
 
 function draw() {
+  // Clear background
   background(255);
 
   if (!modelReadyFlag || !videoReadyFlag || !segmentation || !segmentation.backgroundMask) {
@@ -157,13 +159,12 @@ function draw() {
   let mW = maskImg.width;
   let mH = maskImg.height;
 
-  // --- LETTERE CHE SCENDONO NELLA SAGOMA ---
+  // Draw falling letters inside the person mask
   textAlign(CENTER, CENTER);
   textSize(cellSize - 1);
   fill(0);
 
   for (let c = 0; c < cols; c++) {
-    // aggiorno l’offset della colonna: pioggia continua
     colOffset[c] = (colOffset[c] + colSpeed[c]) % gridH;
 
     for (let r = 0; r < rows; r++) {
@@ -171,7 +172,6 @@ function draw() {
       let yPos = gridY + (baseY % gridH);
       let xPos = gridX + c * cellSize + cellSize / 2;
 
-      // mappo verso la mask
       let xNorm = (xPos - gridX) / gridW;
       let yNorm = (yPos - gridY) / gridH;
 
@@ -180,12 +180,10 @@ function draw() {
       if (px < 0 || px >= mW || py < 0 || py >= mH) continue;
 
       if (isInsideMask(maskImg, px, py)) {
-        // usa il carattere fisso della cella
         let ch = charGrid[c][r];
         text(ch, xPos, yPos);
 
-        // ogni tanto cambia lettera (ma non ad ogni frame)
-        if (random() < 0.01) { // 1% di probabilità per frame
+        if (random() < 0.01) {
           charGrid[c][r] = randomChar();
         }
       }
