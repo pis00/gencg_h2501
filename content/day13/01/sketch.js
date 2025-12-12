@@ -1,85 +1,232 @@
-const SEED = 99173;
-const CANVAS_W = 900;
-const CANVAS_H = 800;
+let video;
+let bodypix;
+let segmentation;
+
+let options = {
+  outputStride: 8,
+  segmentationThreshold: 0.7,
+  multiplier: 1.0
+};
+
+let modelReadyFlag = false;
+let videoReadyFlag = false;
+let startedSegmentation = false;
+
+const alphaThreshold = 40;
+
+// grid / letters
+let cellSize = 8;        // celle un po' più grandi → meno colonne, più FPS
+let cols, rows;
+let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+let charGrid = [];       // [col][row] carattere fisso per ogni cella
+
+// video size
+let vidW = 320;
+let vidH = 240;
+
+// area dove disegnare le lettere (stesso aspect del video)
+let gridX, gridY, gridW, gridH;
+
+// offset e velocità per ogni colonna (pioggia verticale)
+let colOffset = [];
+let colSpeed = [];
 
 function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
-  pixelDensity(2);
-  noCursor();
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+
+  // Webcam
+  video = createCapture(VIDEO, () => {
+    console.log("Capture created");
+  });
+  video.size(vidW, vidH);
+  video.hide();
+
+  video.elt.addEventListener("loadeddata", () => {
+    console.log("Video loaded data");
+    vidW = video.width;
+    vidH = video.height;
+    videoReadyFlag = true;
+    updateGridArea();
+    initColumnsAndChars();
+    tryStartSegmentation();
+  });
+
+  // BodyPix
+  bodypix = ml5.bodyPix(options, () => {
+    console.log("BodyPix model loaded");
+    modelReadyFlag = true;
+    tryStartSegmentation();
+  });
+
+  textAlign(CENTER, CENTER);
+  textSize(cellSize - 1);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  updateGridArea();
+  initColumnsAndChars();
+}
+
+function updateGridArea() {
+  let canvasRatio = width / height;
+  let videoRatio = vidW / vidH;
+
+  if (canvasRatio > videoRatio) {
+    gridH = height * 0.9;
+    gridW = gridH * videoRatio;
+  } else {
+    gridW = width * 0.9;
+    gridH = gridW / videoRatio;
+  }
+
+  gridX = (width - gridW) / 2;
+  gridY = (height - gridH) / 2;
+
+  cols = floor(gridW / cellSize);
+  rows = floor(gridH / cellSize);
+}
+
+function initColumnsAndChars() {
+  colOffset = [];
+  colSpeed = [];
+  charGrid = [];
+
+  if (!cols || !rows) return;
+
+  for (let c = 0; c < cols; c++) {
+    colOffset[c] = random(0, gridH);      // posizione iniziale del “nastro”
+    colSpeed[c]  = random(1.5, 3);        // velocità un po' più lenta
+
+    charGrid[c] = [];
+    for (let r = 0; r < rows; r++) {
+      charGrid[c][r] = randomChar();      // lettera iniziale per ogni cella
+    }
+  }
+}
+
+function tryStartSegmentation() {
+  if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
+    startedSegmentation = true;
+    console.log("Starting segmentation loop");
+    bodypix.segment(video, gotResults);
+  }
+}
+
+function gotResults(error, result) {
+  if (error) {
+    console.error(error);
+    return;
+  }
+  segmentation = result;
+  bodypix.segment(video, gotResults);
+}
+
+function randomChar() {
+  return letters.charAt(floor(random(letters.length)));
+}
+
+// controlla se (px,py) è dentro la persona usando un intorno 5x5
+function isInsideMask(maskImg, px, py) {
+  let mW = maskImg.width;
+  let mH = maskImg.height;
+  const radius = 2;
+
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      let x = px + dx;
+      let y = py + dy;
+      if (x < 0 || x >= mW || y < 0 || y >= mH) continue;
+      let idx = (x + y * mW) * 4;
+      let a = maskImg.pixels[idx + 3];
+      if (a >= alphaThreshold) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function draw() {
   background(255);
 
-  const t = constrain(mouseY / height, 0, 1);
-  const ease = t * t * (3 - 2 * t); 
-
-  const cols = max(2, round(map(constrain(mouseX, 0, width), 0, width, 6, 40)));
-  const cellW = width / cols;
-  const rows = max(2, round(height / cellW));
-  const cellH = height / rows;
-  const cellSize = min(cellW, cellH);
-
-  const s = lerp(cellSize * 0.6, cellSize * 0.98, ease);
-
-  noiseSeed(SEED);
-  randomSeed(SEED);
-
-  noStroke();
+  // debug
+  textAlign(LEFT, TOP);
   fill(0);
+  textSize(14);
+  text(
+    "modelReady: " + modelReadyFlag +
+    "\nvideoReady: " + videoReadyFlag +
+    "\nsegmentation: " + (segmentation ? "ok" : "no") +
+    "\nFPS: " + nf(frameRate(), 2, 1),
+    10, 10
+  );
 
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
+  // preview camera + mask in alto a destra
+  if (videoReadyFlag) {
+    let previewW = min(220, width / 3);
+    let previewH = previewW * (vidH / vidW);
 
-      const gx = (i + 0.5) * cellW;
-      const gy = (j + 0.5) * cellH;
+    image(video, width - previewW - 10, 10, previewW, previewH);
 
-
-      const offAmp = cellSize * 1.1;
-      const ox = (noise(i * 0.31, j * 0.29) - 0.5) * 2 * offAmp;
-      const oy = (noise(i * 0.33 + 80, j * 0.27 + 80) - 0.5) * 2 * offAmp;
-
-      const sx = gx + ox;
-      const sy = gy + oy;
-      const x = lerp(sx, gx, ease);
-      const y = lerp(sy, gy, ease);
-
-      const baseRot = (noise(i * 0.37 + 200, j * 0.41 + 200) - 0.5) * PI;
-      const rot = lerp(baseRot, 0, ease);
-
-      const startIsA = noise(i * 0.5 + 500, j * 0.5 + 500) > 0.5;
-      const targetIsA = ((i + j) % 2) === 1;
-
-      const triA = [
-        { x: -s / 2, y: -s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-      const triB = [
-        { x:  s / 2, y:  s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-
-      const S = startIsA ? triA : triB;
-      const T = targetIsA ? triA : triB;
-
-      const v0 = { x: lerp(S[0].x, T[0].x, ease), y: lerp(S[0].y, T[0].y, ease) };
-      const v1 = { x: lerp(S[1].x, T[1].x, ease), y: lerp(S[1].y, T[1].y, ease) };
-      const v2 = { x: lerp(S[2].x, T[2].x, ease), y: lerp(S[2].y, T[2].y, ease) };
-
+    if (segmentation && segmentation.backgroundMask) {
+      let maskImgPrev = segmentation.backgroundMask;
       push();
-      translate(x, y);
-      rotate(rot);
-      triangle(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
+      tint(0, 200, 0, 180);
+      image(maskImgPrev, width - previewW - 10, 20 + previewH, previewW, previewH);
       pop();
+
+      textAlign(RIGHT, TOP);
+      fill(0);
+      textSize(12);
+      text("Camera", width - 10, 10);
+      text("Mask", width - 10, 20 + previewH);
     }
   }
 
-  push();
-  noFill();
-  stroke(0);
-  strokeWeight(2);
-  circle(mouseX, mouseY, 14);
-  pop();
+  if (!modelReadyFlag || !videoReadyFlag || !segmentation || !segmentation.backgroundMask) {
+    return;
+  }
+
+  let maskImg = segmentation.backgroundMask;
+  maskImg.loadPixels();
+
+  let mW = maskImg.width;
+  let mH = maskImg.height;
+
+  // --- LETTERE CHE SCENDONO NELLA SAGOMA ---
+  textAlign(CENTER, CENTER);
+  textSize(cellSize - 1);
+  fill(0);
+
+  for (let c = 0; c < cols; c++) {
+    // aggiorno l’offset della colonna: pioggia continua
+    colOffset[c] = (colOffset[c] + colSpeed[c]) % gridH;
+
+    for (let r = 0; r < rows; r++) {
+      let baseY = r * cellSize + colOffset[c];
+      let yPos = gridY + (baseY % gridH);
+      let xPos = gridX + c * cellSize + cellSize / 2;
+
+      // mappo verso la mask
+      let xNorm = (xPos - gridX) / gridW;
+      let yNorm = (yPos - gridY) / gridH;
+
+      let px = floor(xNorm * (mW - 1));
+      let py = floor(yNorm * (mH - 1));
+      if (px < 0 || px >= mW || py < 0 || py >= mH) continue;
+
+      if (isInsideMask(maskImg, px, py)) {
+        // usa il carattere fisso della cella
+        let ch = charGrid[c][r];
+        text(ch, xPos, yPos);
+
+        // ogni tanto cambia lettera (ma non ad ogni frame)
+        if (random() < 0.01) { // 1% di probabilità per frame
+          charGrid[c][r] = randomChar();
+        }
+      }
+    }
+  }
 }

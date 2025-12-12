@@ -37,13 +37,11 @@ function setup() {
 
   // Webcam
   video = createCapture(VIDEO, () => {
-    console.log("Capture created");
   });
   video.size(vidW, vidH);
   video.hide();
 
   video.elt.addEventListener("loadeddata", () => {
-    console.log("Video loaded data");
     vidW = video.width;
     vidH = video.height;
     videoReadyFlag = true;
@@ -54,7 +52,6 @@ function setup() {
 
   // BodyPix
   bodypix = ml5.bodyPix(options, () => {
-    console.log("BodyPix model loaded");
     modelReadyFlag = true;
     tryStartSegmentation();
   });
@@ -109,7 +106,6 @@ function initColumnsAndChars() {
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
-    console.log("Starting segmentation loop");
     bodypix.segment(video, gotResults);
   }
 }
@@ -150,40 +146,6 @@ function isInsideMask(maskImg, px, py) {
 
 function draw() {
   background(255);
-
-  // debug
-  textAlign(LEFT, TOP);
-  fill(0);
-  textSize(14);
-  text(
-    "modelReady: " + modelReadyFlag +
-    "\nvideoReady: " + videoReadyFlag +
-    "\nsegmentation: " + (segmentation ? "ok" : "no") +
-    "\nFPS: " + nf(frameRate(), 2, 1),
-    10, 10
-  );
-
-  // preview camera + mask in alto a destra
-  if (videoReadyFlag) {
-    let previewW = min(220, width / 3);
-    let previewH = previewW * (vidH / vidW);
-
-    image(video, width - previewW - 10, 10, previewW, previewH);
-
-    if (segmentation && segmentation.backgroundMask) {
-      let maskImgPrev = segmentation.backgroundMask;
-      push();
-      tint(0, 200, 0, 180);
-      image(maskImgPrev, width - previewW - 10, 20 + previewH, previewW, previewH);
-      pop();
-
-      textAlign(RIGHT, TOP);
-      fill(0);
-      textSize(12);
-      text("Camera", width - 10, 10);
-      text("Mask", width - 10, 20 + previewH);
-    }
-  }
 
   if (!modelReadyFlag || !videoReadyFlag || !segmentation || !segmentation.backgroundMask) {
     return;
