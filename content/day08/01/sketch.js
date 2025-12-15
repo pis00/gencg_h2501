@@ -43,24 +43,26 @@ function gotResults(error, result) {
 function draw() {
   background(255);
 
-  if (!segmentation || !segmentation.backgroundMask) {
-    fill(0);
-    textAlign(CENTER, CENTER);
-    textSize(16);
-    text("Caricamento modello / segmentazione...", width / 2, height / 2);
-    drawBorder2D();
-    return;
-  }
+  if (!segmentation || !segmentation.backgroundMask) return;
 
   let maskImg = segmentation.backgroundMask;
-
   maskImg.loadPixels();
   loadPixels();
 
+  let mW = maskImg.width;
+  let mH = maskImg.height;
+
   for (let y = 0; y < height; y++) {
+    // mappa y canvas -> y mask
+    let py = floor((y / height) * (mH - 1));
     for (let x = 0; x < width; x++) {
+      // mappa x canvas -> x mask
+      let px = floor((x / width) * (mW - 1));
+
+      let mIndex = (px + py * mW) * 4;
+      let a = maskImg.pixels[mIndex + 3];
+
       let index = (x + y * width) * 4;
-      let a = maskImg.pixels[index + 3];
 
       if (a > 0) {
         pixels[index + 0] = 0;
@@ -77,9 +79,7 @@ function draw() {
   }
 
   updatePixels();
-  drawBorder2D();
 }
-
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   video.size(width, height);
