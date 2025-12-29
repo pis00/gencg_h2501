@@ -1,86 +1,138 @@
-const SEED = 99173;
-const CANVAS_W = 900;
-const CANVAS_H = 800;
+let canvas;
+
+let ballX;
+let ballY;
+let ballRadius;
+
+let ballVelX;
+const SECONDS_PER_SIDE = 1.0;
+
+// tempo reale basato sui rimbalzi
+let seconds = 0;
+let minutes = 0;
+let hours   = 0;
+
+let ballColor;
+
+let blackHits = 0;
+let redHits = 0;
+let greenHits = 0;
 
 function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
-  pixelDensity(2);
-  noCursor();
+  canvas = createCanvas(windowWidth, windowHeight);
+  initBall();
+}
+
+function initBall() {
+  ballRadius = min(width, height) * 0.03;
+  ballX = ballRadius;
+  ballY = height / 2;
+
+  let travelDistance = width - 2 * ballRadius;
+  ballVelX = travelDistance / SECONDS_PER_SIDE;
+
+  seconds = 0;
+  minutes = 0;
+  hours = 0;
+
+  ballColor = color(0);
+
+  blackHits = 0;
+  redHits = 0;
+  greenHits = 0;
 }
 
 function draw() {
-  background(255);
+  let dt = deltaTime / 1000;
+  ballX += ballVelX * dt;
 
-  const t = constrain(mouseY / height, 0, 1);
-  const ease = t * t * (3 - 2 * t); 
-
-  const cols = max(2, round(map(constrain(mouseX, 0, width), 0, width, 6, 40)));
-  const cellW = width / cols;
-  const rows = max(2, round(height / cellW));
-  const cellH = height / rows;
-  const cellSize = min(cellW, cellH);
-
-  const s = lerp(cellSize * 0.6, cellSize * 0.98, ease);
-
-  noiseSeed(SEED);
-  randomSeed(SEED);
-
-  noStroke();
-  fill(0);
-
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-
-      const gx = (i + 0.5) * cellW;
-      const gy = (j + 0.5) * cellH;
-
-      const offAmp = cellSize * 1.1;
-      const ox = (noise(i * 0.31, j * 0.29) - 0.5) * 2 * offAmp;
-      const oy = (noise(i * 0.33 + 80, j * 0.27 + 80) - 0.5) * 2 * offAmp;
-
-      const sx = gx + ox;
-      const sy = gy + oy;
-      const x = lerp(sx, gx, ease);
-      const y = lerp(sy, gy, ease);
-
-      const baseRot = (noise(i * 0.37 + 200, j * 0.41 + 200) - 0.5) * PI;
-      const rot = lerp(baseRot, 0, ease);
-
-      const startIsA = noise(i * 0.5 + 500, j * 0.5 + 500) > 0.5;
-      const targetIsA = ((i + j) % 2) === 1;
-
-      const triA = [
-        { x: -s / 2, y: -s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-      const triB = [
-        { x:  s / 2, y:  s / 2 },
-        { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
-      ];
-
-      const S = startIsA ? triA : triB;
-      const T = targetIsA ? triA : triB;
-
-      const v0 = { x: lerp(S[0].x, T[0].x, ease), y: lerp(S[0].y, T[0].y, ease) };
-      const v1 = { x: lerp(S[1].x, T[1].x, ease), y: lerp(S[1].y, T[1].y, ease) };
-      const v2 = { x: lerp(S[2].x, T[2].x, ease), y: lerp(S[2].y, T[2].y, ease) };
-
-      push();
-      translate(x, y);
-      rotate(rot);
-      triangle(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-      pop();
-    }
+  if (ballX - ballRadius <= 0) {
+    ballX = ballRadius;
+    ballVelX = abs(ballVelX);
+    onTick();
   }
 
-  push();
-  noFill();
-  stroke(0);
-  strokeWeight(2);
-  circle(mouseX, mouseY, 14);
-  pop();
+  if (ballX + ballRadius >= width) {
+    ballX = width - ballRadius;
+    ballVelX = -abs(ballVelX);
+    onTick();
+  }
+
+  background(255);
+
+  fill(ballColor);
+  noStroke();
+  ellipse(ballX, ballY, ballRadius * 2, ballRadius * 2);
+
+  drawCounters();
 
   drawBorder2D();
+}
+
+function onTick() {
+
+  // ogni rimbalzo = 1 secondo
+  seconds++;
+
+  // ogni rimbalzo aumenta il contatore nero (totale rimbalzi)
+  blackHits++;
+
+  // gestione rollover secondi/minuti/ore
+  if (seconds >= 60) {
+    seconds = 0;
+    minutes++;
+
+    ballColor = color(255, 0, 0);
+    redHits++;
+  } else {
+    // secondi normali
+    ballColor = color(0);
+  }
+
+  if (minutes >= 60) {
+    minutes = 0;
+    hours++;
+
+    ballColor = color(0, 255, 0);
+    greenHits++;
+  }
+}
+
+function drawCounters() {
+  let margin = 20;
+  let x = width - 150;
+  let y = margin;
+  let lineSpacing = 24;
+  let dotSize = 12;
+
+  noStroke();
+  textSize(16);
+  textAlign(LEFT, TOP);
+
+  // nero
+  fill(0);
+  ellipse(x, y + dotSize / 2, dotSize, dotSize);
+  fill(0);
+  text("= " + blackHits, x + 18, y);
+
+  y += lineSpacing;
+
+  // rosso
+  fill(255, 0, 0);
+  ellipse(x, y + dotSize / 2, dotSize, dotSize);
+  fill(0);
+  text("= " + redHits, x + 18, y);
+
+  y += lineSpacing;
+
+  // verde
+  fill(0, 255, 0);
+  ellipse(x, y + dotSize / 2, dotSize, dotSize);
+  fill(0);
+  text("= " + greenHits, x + 18, y);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  initBall();
 }
