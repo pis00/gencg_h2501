@@ -1,184 +1,128 @@
 let video;
-let bodypix;
-let segmentation;
+let pixelSizeW;
+let pixelSizeH;
 
-let options = {
-  outputStride: 8,
-  segmentationThreshold: 0.7,
-  multiplier: 1.0
-};
+let virtualW = 80; // numero di "pixel" in orizzontale
+let virtualH = 60; // numero di "pixel" in verticale
 
-let modelReadyFlag = false;
-let videoReadyFlag = false;
-let startedSegmentation = false;
-
-const alphaThreshold = 128;
-
-// Matrix effect
-let cellSize = 14;
-let cols, rows;
-let streams = [];
-let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-// base video size (manteniamo aspect ratio)
-let vidW = 640;
-let vidH = 480;
-
-// area centrata dove “vive” la camera (e quindi la mask)
-let camX, camY, camW, camH;
+// matrice di colori per i filtri (null = nessun filtro)
+let filterColors = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  pixelDensity(1);
 
-  // Webcam (non stirare al canvas)
-  video = createCapture(VIDEO, () => {
-    console.log("Capture created");
-  });
-  video.size(vidW, vidH);
+  // avvia la webcam con risoluzione bassa (pixel virtuali)
+  video = createCapture(VIDEO);
+  video.size(virtualW, virtualH);
   video.hide();
 
-  video.elt.addEventListener("loadeddata", () => {
-    console.log("Video loaded data");
-    vidW = video.width;
-    vidH = video.height;
+  // ogni pixel del video viene scalato in larghezza e altezza
+  pixelSizeW = width / virtualW;
+  pixelSizeH = height / virtualH;
 
-    videoReadyFlag = true;
-    updateCameraArea();
-    initStreams();
-    tryStartSegmentation();
-  });
+  noStroke();
 
-  // BodyPix
-  bodypix = ml5.bodyPix(options, () => {
-    console.log("BodyPix model loaded");
-    modelReadyFlag = true;
-    tryStartSegmentation();
-  });
-
-  textAlign(CENTER, CENTER);
-  textSize(cellSize);
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  updateCameraArea();
-  initStreams();
-}
-
-function updateCameraArea() {
-  // area centrata con aspect ratio del video
-  let canvasRatio = width / height;
-  let videoRatio = vidW / vidH;
-
-  if (canvasRatio > videoRatio) {
-    camH = height * 0.95;
-    camW = camH * videoRatio;
-  } else {
-    camW = width * 0.95;
-    camH = camW / videoRatio;
+  // inizializza matrice dei filtri
+  for (let y = 0; y < virtualH; y++) {
+    filterColors[y] = [];
+    for (let x = 0; x < virtualW; x++) {
+      filterColors[y][x] = null; // nessun filtro all'inizio
+    }
   }
-
-  camX = (width - camW) / 2;
-  camY = (height - camH) / 2;
-
-  cols = floor(camW / cellSize);
-  rows = floor(camH / cellSize);
-}
-
-function initStreams() {
-  streams = [];
-  if (!cols || !rows) return;
-
-  for (let i = 0; i < cols; i++) {
-    streams.push({
-      x: camX + i * cellSize + cellSize / 2,
-      y: random(camY - camH, camY),
-      speed: random(2, 6),
-      length: floor(random(10, 25))
-    });
-  }
-}
-
-function tryStartSegmentation() {
-  if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
-    startedSegmentation = true;
-    console.log("Starting segmentation loop");
-    bodypix.segment(video, gotResults);
-  }
-}
-
-function gotResults(error, result) {
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  segmentation = result;
-  bodypix.segment(video, gotResults);
 }
 
 function draw() {
-  background(255);
+  background(0);
 
-  if (!modelReadyFlag) {
-    fill(0);
-    text("Caricamento modello BodyPix...", width / 2, height / 2);
-    return;
-  }
+  video.loadPixels();
 
-  if (!videoReadyFlag) {
-    fill(0);
-    text("Caricamento video dalla camera...", width / 2, height / 2);
-    return;
-  }
+  push();
+  // specchio orizzontale (effetto specchio)
+  translate(width, 0);
+  scale(-1, 1);
 
-  if (!segmentation || !segmentation.backgroundMask) {
-    fill(0);
-    text("Calcolo della segmentazione...", width / 2, height / 2);
-    return;
-  }
+  for (let y = 0; y < video.height; y++) {
+    for (let x = 0; x < video.width; x++) {
 
-  let maskImg = segmentation.backgroundMask;
-  maskImg.loadPixels();
+      let i = (x + y * video.width) * 4;
+      let r = video.pixels[i];
+      let g = video.pixels[i + 1];
+      let b = video.pixels[i + 2];
 
-  noStroke();
-  fill(0, 180, 0);
+      // disegno il "pixel" con il colore della webcam
+      fill(r, g, b);
+      let px = x * pixelSizeW;
+      let py = y * pixelSizeH;
+      rect(px, py, pixelSizeW, pixelSizeH);
 
-  // (opzionale) debug area camera
-  // noFill(); stroke(220); rect(camX, camY, camW, camH); noStroke();
-
-  for (let i = 0; i < streams.length; i++) {
-    let s = streams[i];
-
-    s.y += s.speed;
-    if (s.y - s.length * cellSize > camY + camH + 50) {
-      s.y = random(camY - camH, camY);
-      s.speed = random(2, 6);
-      s.length = floor(random(10, 25));
-    }
-
-    for (let k = 0; k < s.length; k++) {
-      let yPos = s.y - k * cellSize;
-      if (yPos < camY || yPos >= camY + camH) continue;
-
-      let xPos = s.x;
-
-      // mappa canvas -> mask usando area camera centrata
-      let xNorm = (xPos - camX) / camW;
-      let yNorm = (yPos - camY) / camH;
-      if (xNorm < 0 || xNorm > 1 || yNorm < 0 || yNorm > 1) continue;
-
-      let px = floor(xNorm * (maskImg.width - 1));
-      let py = floor(yNorm * (maskImg.height - 1));
-
-      let index = (px + py * maskImg.width) * 4;
-      let alpha = maskImg.pixels[index + 3];
-
-      if (alpha >= alphaThreshold) {
-        let ch = letters.charAt(floor(random(letters.length)));
-        text(ch, xPos, yPos);
+      // se c'è un filtro su questo pixel, disegna sopra un rettangolo semi-trasparente
+      let fColor = filterColors[y][x];
+      if (fColor !== null) {
+        fill(fColor);
+        rect(px, py, pixelSizeW, pixelSizeH);
       }
     }
   }
+
+  pop();
+  
+
+
+  // se il mouse è premuto, dipingiamo in tempo reale
+  if (mouseIsPressed && mouseButton === LEFT) {
+    paintAt(mouseX, mouseY);
+  }  
+  drawBorder2D();
+}
+
+// inizio del tratto: disegno subito
+function mousePressed() {
+  if (mouseButton !== LEFT) return;
+  paintAt(mouseX, mouseY);
+}
+
+// mentre trascini continuando a tenere premuto il tasto sinistro
+function mouseDragged() {
+  if (mouseButton === LEFT) {
+    paintAt(mouseX, mouseY);
+  }
+}
+
+// funzione che colora il pixel sotto una certa posizione del mouse
+function paintAt(screenX, screenY) {
+  // ignora fuori dal canvas
+  if (screenX < 0 || screenX > width || screenY < 0 || screenY > height) {
+    return;
+  }
+
+  // correzione per lo specchio (nel draw abbiamo usato translate + scale)
+  let mirroredX = width - screenX;
+
+  // calcolo l'indice del pixel nella griglia
+  let gridX = floor(mirroredX / pixelSizeW);
+  let gridY = floor(screenY / pixelSizeH);
+
+  // controllo limiti
+  if (
+    gridX >= 0 && gridX < virtualW &&
+    gridY >= 0 && gridY < virtualH
+  ) {
+    // se il pixel NON è ancora stato colorato, assegno un nuovo colore random
+    if (filterColors[gridY][gridX] === null) {
+      filterColors[gridY][gridX] = color(
+        random(255),
+        random(255),
+        random(255),
+        120 // alpha: trasparente per vedere la webcam sotto
+      );
+    }
+    // se è già colorato, NON lo tocco → non cambia mai più
+  }
+}
+
+function windowResized() {
+  // quando la finestra cambia, ridimensiona il canvas e ricalcola le dimensioni dei pixel
+  resizeCanvas(windowWidth, windowHeight);
+  pixelSizeW = width / virtualW;
+  pixelSizeH = height / virtualH;
 }
