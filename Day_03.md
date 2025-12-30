@@ -1,4 +1,4 @@
-# Day 03
+# Week 03
 
 ## Clock / Time
 
@@ -20,9 +20,4 @@ Humans since 1982 were selected by a panel of  Bay Area artists, arts administra
 ### My exemple
 {% raw %}
 <iframe src="content/day03/02/embed.html" width="100%" height="450" frameborder="no"></iframe>
-{% endraw %}
-
-### My exemple
-{% raw %}
-<iframe src="content/day03/03/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}
