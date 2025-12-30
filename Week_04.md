@@ -4,7 +4,7 @@
 
 {% raw %}
 <video width="100%" height="450" loop muted autoplay>
-  <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/Week03/A_million_time.mp4" type="video/mp4">
+  <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/Week04/A_million_time.mp4" type="video/mp4">
 </video>
 {% endraw %}
 
@@ -14,10 +14,10 @@ Humans since 1982 were selected by a panel of  Bay Area artists, arts administra
 
 ### My exemple
 {% raw %}
-<iframe src="content/Week03/01/embed.html" width="100%" height="450" frameborder="no"></iframe>
+<iframe src="content/Week04/01/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}
 
 ### My exemple
 {% raw %}
-<iframe src="content/Week03/02/embed.html" width="100%" height="450" frameborder="no"></iframe>
+<iframe src="content/Week04/02/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}
