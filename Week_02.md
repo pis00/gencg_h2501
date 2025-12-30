@@ -1,4 +1,4 @@
-# Day 02
+# Week 02
 
 ## Grids and patterns
 

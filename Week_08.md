@@ -1,4 +1,4 @@
-# Day 08
+# Week 08
 
 ## Faces and Parametric Generators
 

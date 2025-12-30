@@ -1,4 +1,4 @@
-# Day 12
+# Week 12
 
 ## Fianl Project
 

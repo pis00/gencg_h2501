@@ -1,4 +1,4 @@
-# Day 06
+# Week 06
 
 ## Faces and Parametric Generators
 

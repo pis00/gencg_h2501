@@ -1,4 +1,4 @@
-# Day 10
+# Week 10
 
 ## Fianl Project
 

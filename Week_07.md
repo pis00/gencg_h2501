@@ -1,4 +1,4 @@
-# Day 07
+# Week 07
 
 ## Pixels
 
