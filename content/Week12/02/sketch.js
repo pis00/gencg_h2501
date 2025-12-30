@@ -14,24 +14,24 @@ let startedSegmentation = false;
 
 const alphaThreshold = 128;
 
-// Matrix effect
-let cellSize = 14;
+// Matrix effect settings
+let cellSize = 10;
 let cols, rows;
 let streams = [];
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-// base video size (manteniamo aspect ratio)
+// video base size (manteniamo aspect ratio)
 let vidW = 640;
 let vidH = 480;
 
-// area centrata dove “vive” la camera (e quindi la mask)
+// area centrata dove vive la “camera” (e quindi anche la mask/lettere)
 let camX, camY, camW, camH;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
-  // Webcam (non stirare al canvas)
+  // Webcam
   video = createCapture(VIDEO, () => {
     console.log("Capture created");
   });
@@ -40,6 +40,7 @@ function setup() {
 
   video.elt.addEventListener("loadeddata", () => {
     console.log("Video loaded data");
+    // aggiorna dimensioni reali (se diverse)
     vidW = video.width;
     vidH = video.height;
 
@@ -49,7 +50,7 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // BodyPix
+  // Carica BodyPix
   bodypix = ml5.bodyPix(options, () => {
     console.log("BodyPix model loaded");
     modelReadyFlag = true;
@@ -57,7 +58,7 @@ function setup() {
   });
 
   textAlign(CENTER, CENTER);
-  textSize(cellSize);
+  textSize(cellSize - 2);
 }
 
 function windowResized() {
@@ -91,11 +92,12 @@ function initStreams() {
   if (!cols || !rows) return;
 
   for (let i = 0; i < cols; i++) {
+    let len = floor(random(rows * 0.8, rows * 1.4));
     streams.push({
-      x: camX + i * cellSize + cellSize / 2,
-      y: random(camY - camH, camY),
-      speed: random(2, 6),
-      length: floor(random(10, 25))
+      x: camX + i * cellSize + cellSize / 2, // dentro area camera centrata
+      y: random(camY - camH, camY),          // partono sopra l’area camera
+      speed: random(2, 5),
+      length: len
     });
   }
 }
@@ -113,7 +115,6 @@ function gotResults(error, result) {
     console.error(error);
     return;
   }
-
   segmentation = result;
   bodypix.segment(video, gotResults);
 }
@@ -139,23 +140,28 @@ function draw() {
     return;
   }
 
+  // Maschera della persona
   let maskImg = segmentation.backgroundMask;
   maskImg.loadPixels();
 
   noStroke();
-  fill(0, 180, 0);
+  fill(0); // LETTERE NERE
+  textSize(cellSize - 2);
 
-  // (opzionale) debug area camera
+  // (opzionale) visualizza il rettangolo area camera per debug
   // noFill(); stroke(220); rect(camX, camY, camW, camH); noStroke();
 
   for (let i = 0; i < streams.length; i++) {
     let s = streams[i];
 
+    // scende
     s.y += s.speed;
-    if (s.y - s.length * cellSize > camY + camH + 50) {
-      s.y = random(camY - camH, camY);
-      s.speed = random(2, 6);
-      s.length = floor(random(10, 25));
+
+    // reset quando lo stream è sceso oltre l’area camera
+    if (s.y > camY + camH + s.length * cellSize) {
+      s.length = floor(random(rows * 0.8, rows * 1.4));
+      s.y = camY - s.length * cellSize;
+      s.speed = random(2, 5);
     }
 
     for (let k = 0; k < s.length; k++) {
@@ -164,9 +170,10 @@ function draw() {
 
       let xPos = s.x;
 
-      // mappa canvas -> mask usando area camera centrata
+      // mappa coordinate canvas -> coordinate mask (video)
       let xNorm = (xPos - camX) / camW;
       let yNorm = (yPos - camY) / camH;
+
       if (xNorm < 0 || xNorm > 1 || yNorm < 0 || yNorm > 1) continue;
 
       let px = floor(xNorm * (maskImg.width - 1));

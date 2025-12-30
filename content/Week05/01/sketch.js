@@ -1,138 +1,147 @@
-let canvas;
+let turns = 100;        // lots of turns
+let thickness = 10;     // line thickness (>= spacing implied by turns)
 
-let ballX;
-let ballY;
-let ballRadius;
+let phase = "wait";     // "wait" | "black" | "white"
+let dotRadius = 14;
 
-let ballVelX;
-const SECONDS_PER_SIDE = 1.0;
-
-// tempo reale basato sui rimbalzi
-let seconds = 0;
-let minutes = 0;
-let hours   = 0;
-
-let ballColor;
-
-let blackHits = 0;
-let redHits = 0;
-let greenHits = 0;
+let theta;              // current angle
+let thetaStart;         // starting angle (upward)
+let thetaEnd;           // ending angle (after N turns)
+let k;                  // r = k * (theta - thetaStart)
+let cx, cy;             // center
+let stopRadius;         // farthest corner radius
+let prevX, prevY;
 
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
-  initBall();
+  pixelDensity(2);
+  noFill();
+
+  cx = width / 2;
+  cy = height / 2;
+
+  background(255);
+  prepareGeometry();    // compute k, thetaStart/End, stopRadius
 }
 
-function initBall() {
-  ballRadius = min(width, height) * 0.03;
-  ballX = ballRadius;
-  ballY = height / 2;
+function prepareGeometry() {
+  // farthest corner radius + margin for complete coverage
+  stopRadius = 0.5 * sqrt(width * width + height * height) + thickness;
 
-  let travelDistance = width - 2 * ballRadius;
-  ballVelX = travelDistance / SECONDS_PER_SIDE;
-
-  seconds = 0;
-  minutes = 0;
-  hours = 0;
-
-  ballColor = color(0);
-
-  blackHits = 0;
-  redHits = 0;
-  greenHits = 0;
+  thetaStart = -PI / 2;               // straight up
+  thetaEnd   = thetaStart + TWO_PI * turns;
+  k          = stopRadius / (TWO_PI * turns);
 }
 
 function draw() {
-  let dt = deltaTime / 1000;
-  ballX += ballVelX * dt;
-
-  if (ballX - ballRadius <= 0) {
-    ballX = ballRadius;
-    ballVelX = abs(ballVelX);
-    onTick();
+  if (phase === "wait") {
+    // show a clean red dot (no outline)
+    background(255);
+    noStroke();
+    fill(255, 0, 0);
+    circle(cx, cy, dotRadius * 2);
+    drawBorder2D();
+    noLoop();            // pause here until the next click
+    return;
   }
 
-  if (ballX + ballRadius >= width) {
-    ballX = width - ballRadius;
-    ballVelX = -abs(ballVelX);
-    onTick();
+  // Spiral drawing (both phases share the same render logic, just direction)
+  strokeWeight(thickness);
+  strokeCap(SQUARE);
+
+  // Draw many small segments each frame for smooth/fast animation
+  if (phase === "black") {
+    stroke(0);
+    for (let i = 0; i < 300 && theta < thetaEnd; i++) {
+      const r = k * (theta - thetaStart);
+
+      // adaptive step for ~constant pixel length
+      const targetStepPx = 2.0;
+      const denom = sqrt(k * k + r * r);
+      const dTheta = targetStepPx / (denom || 1); // positive
+
+      const x = cx + r * cos(theta);
+      const y = cy + r * sin(theta);
+
+      if (theta === thetaStart) {
+        prevX = cx;
+        prevY = cy;
+      }
+      line(prevX, prevY, x, y);
+
+      prevX = x;
+      prevY = y;
+      theta += dTheta;
+    }
+
+    if (theta >= thetaEnd) {
+      // switch to white spiral, starting exactly where black ended
+      phase = "white";
+      theta = thetaEnd;  // start stepping backward
+    }
+  } else if (phase === "white") {
+    // draw backward (from edge toward center) in white over the black canvas
+    stroke(255);
+    for (let i = 0; i < 300 && theta > thetaStart; i++) {
+      const r = k * (theta - thetaStart);
+
+      const targetStepPx = 2.0;
+      const denom = sqrt(k * k + r * r);
+      const dTheta = targetStepPx / (denom || 1); // positive magnitude
+
+      const x = cx + r * cos(theta);
+      const y = cy + r * sin(theta);
+
+      if (theta === thetaEnd) {
+        if (prevX === undefined) {
+          prevX = cx + (k * (thetaEnd - thetaStart)) * cos(thetaEnd);
+          prevY = cy + (k * (thetaEnd - thetaStart)) * sin(thetaEnd);
+        }
+      }
+
+      line(prevX, prevY, x, y);
+
+      prevX = x;
+      prevY = y;
+      theta -= dTheta; // step backward toward center
+    }
+
+    if (theta <= thetaStart) {
+      // white spiral finished at center -> show red dot again
+      phase = "wait";     // <- key change (not "done")
+      // next frame will draw the dot in the "wait" branch
+    }
   }
-
-  background(255);
-
-  fill(ballColor);
-  noStroke();
-  ellipse(ballX, ballY, ballRadius * 2, ballRadius * 2);
-
-  drawCounters();
 
   drawBorder2D();
 }
 
-function onTick() {
-
-  // ogni rimbalzo = 1 secondo
-  seconds++;
-
-  // ogni rimbalzo aumenta il contatore nero (totale rimbalzi)
-  blackHits++;
-
-  // gestione rollover secondi/minuti/ore
-  if (seconds >= 60) {
-    seconds = 0;
-    minutes++;
-
-    ballColor = color(255, 0, 0);
-    redHits++;
-  } else {
-    // secondi normali
-    ballColor = color(0);
+function mousePressed() {
+  // Start/restart only if clicking inside red dot while waiting
+  if (phase === "wait") {
+    const d = dist(mouseX, mouseY, cx, cy);
+    if (d <= dotRadius) {
+      // reset everything and begin black spiral
+      background(255);
+      prepareGeometry();
+      theta = thetaStart;
+      prevX = cx;
+      prevY = cy;
+      phase = "black";
+      loop();            // resume animation
+    }
   }
-
-  if (minutes >= 60) {
-    minutes = 0;
-    hours++;
-
-    ballColor = color(0, 255, 0);
-    greenHits++;
-  }
-}
-
-function drawCounters() {
-  let margin = 20;
-  let x = width - 150;
-  let y = margin;
-  let lineSpacing = 24;
-  let dotSize = 12;
-
-  noStroke();
-  textSize(16);
-  textAlign(LEFT, TOP);
-
-  // nero
-  fill(0);
-  ellipse(x, y + dotSize / 2, dotSize, dotSize);
-  fill(0);
-  text("= " + blackHits, x + 18, y);
-
-  y += lineSpacing;
-
-  // rosso
-  fill(255, 0, 0);
-  ellipse(x, y + dotSize / 2, dotSize, dotSize);
-  fill(0);
-  text("= " + redHits, x + 18, y);
-
-  y += lineSpacing;
-
-  // verde
-  fill(0, 255, 0);
-  ellipse(x, y + dotSize / 2, dotSize, dotSize);
-  fill(0);
-  text("= " + greenHits, x + 18, y);
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  initBall();
+  const s = min(windowWidth, windowHeight);
+  resizeCanvas(s, s);
+  cx = width / 2;
+  cy = height / 2;
+
+  // Recompute geometry for new size and return to waiting state
+  prepareGeometry();
+  phase = "wait";
+  background(255);
+  loop();               // draw the red dot again after resize
 }

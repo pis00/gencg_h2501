@@ -1,63 +1,60 @@
-let video;
-let pixelSizeW;
-let pixelSizeH;
-
-let virtualW = 80; // numero di "pixel" in orizzontale
-let virtualH = 60; // numero di "pixel" in verticale
+let skin;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-
-  // avvia la webcam con risoluzione bassa (pixel virtuali)
-  video = createCapture(VIDEO);
-  video.size(virtualW, virtualH);
-  video.hide();
-
-  // ogni pixel del video viene scalato in larghezza e altezza
-  pixelSizeW = width / virtualW;
-  pixelSizeH = height / virtualH;
-
-  noStroke();
+  canvas = createCanvas(windowWidth, windowHeight);
+  skin = color(255, 190, 200); // pink skin
+  noLoop();
 }
 
 function draw() {
-  background(0);
-
-  video.loadPixels();
+  background(255);
 
   push();
-  // specchio orizzontale (effetto specchio)
-  translate(width, 0);
-  scale(-1, 1);
+  translate(width / 2, height / 2);
 
-  for (let y = 0; y < video.height; y++) {
-    for (let x = 0; x < video.width; x++) {
+  const faceW = 200;
+  const faceH = 250;
+  const earW = 40;
+  const earH = 70;
 
-      let i = (x + y * video.width) * 4;
-      let r = video.pixels[i];
-      let g = video.pixels[i + 1];
-      let b = video.pixels[i + 2];
+  // Ears
+  noStroke();
+  fill(skin);
+  ellipse(-faceW * 0.55, 0, earW, earH);
+  ellipse(faceW * 0.55, 0, earW, earH);
 
-      fill(r, g, b);
+  // Face
+  ellipse(0, 0, faceW, faceH);
 
-      // ogni pixel del video diventa un rettangolo che riempie la griglia
-      rect(
-        x * pixelSizeW,
-        y * pixelSizeH,
-        pixelSizeW,
-        pixelSizeH
-      );
-    }
-  }
+  // Hair
+  fill(0);
+  arc(0, -faceH * 0.15, faceW * 1.1, faceH * 0.9, PI, 0, CHORD);
+
+  // Eyes
+  const eyeY = -faceH * 0.1;
+  const eyeX = faceW * 0.2;
+
+  fill(255);
+  ellipse(-eyeX, eyeY, 40, 25);
+  ellipse(eyeX, eyeY, 40, 25);
+
+  fill(0);
+  ellipse(-eyeX, eyeY, 15, 15);
+  ellipse(eyeX, eyeY, 15, 15);
+
+  // Mouth
+  noFill();
+  stroke(120, 0, 40);
+  strokeWeight(4);
+  arc(0, faceH * 0.2, 80, 40, 0, PI);
+
+  // Nose
+  stroke(180);
+  strokeWeight(2);
+  noFill();
+  line(0, 0, 0, 30);
 
   pop();
-  
-  drawBorder2D();
-}
 
-function windowResized() {
-  // quando la finestra cambia, ridimensiona il canvas e ricalcola le dimensioni dei pixel
-  resizeCanvas(windowWidth, windowHeight);
-  pixelSizeW = width / virtualW;
-  pixelSizeH = height / virtualH;
+  drawBorder2D();
 }
