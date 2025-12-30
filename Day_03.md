@@ -1,6 +1,6 @@
-# Week 03
+# Day 03
 
-## Clock / Timee
+## Clock / Time
 
 {% raw %}
 <video width="100%" height="450" loop muted autoplay>
