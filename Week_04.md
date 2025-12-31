@@ -2,9 +2,7 @@
 
 ## Clock / Time
 
-In September 2021 Humans since 1982 launched A million Times (San José), a new site-specific commission for Mineta San José Airport in California, USA. Installed in the pre-security Arrivals Halls of Terminal B, the piece is a permanent public artwork as part of the Airport’s Art + Technology Public Art Program. 
-
-Humans since 1982 were selected by a panel of  Bay Area artists, arts administrators, and airport stakeholders to bring a unique vision of time to the airport.  Bastian Bischoff - Co-founder of Humans since 1982 reflects, “The passage of time feels particularly relevant in the context of the airport. By placing this work in Mineta San José Airport, we intend to turn waiting into a reflective and meditative opportunity, creating a space where people choose and enjoy the experience of waiting.” 
+This artwork strongly influenced the conceptual direction of my own clock sketch. A Million Times does not use traditional clock hands to show time, but instead relies on repetition, rhythm, and synchronized movement to make the passage of time visible. This approach shifted my attention away from reading time precisely and toward experiencing it visually. What inspired me most is how the installation transforms waiting into an active and contemplative moment: time is not something to check, but something to observe. This idea directly informed my decision to design a clock without hands, where time is communicated through abstract elements and visual change rather than through a conventional mechanical representation.
 
 {% raw %}
 <video width="100%" height="450" loop muted autoplay>
