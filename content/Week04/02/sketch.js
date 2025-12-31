@@ -1,3 +1,4 @@
+// Configuration constants
 const GRID_COLS = 40;
 const GRID_ROWS = 24;
 const MARGIN_PX = 20;
@@ -5,14 +6,23 @@ const FLIP_DURATION = 320;
 const RANDOM_STAGGER = 120;
 
 const RIPPLE_SPEED = 12;
-const RIPPLE_BAND  = 1.2;
+const RIPPLE_BAND = 1.2;
 const RIPPLE_MAX_AGE_MS = 6000;
 
 const C_WHITE = 0;
 const C_BLACK = 1;
-const C_RED   = 2;
+const C_RED = 2;
 
-// Font glyph definitions for digits and colon
+// Runtime state
+let cellW, cellH;
+let currentMask;
+let targetMask;
+let flipInfo;
+let lastRenderKey = "";
+
+let ripples = [];
+
+// 5x7 bitmap font definition
 const FONT5x7 = {
   '0': ["01110","10001","10011","10101","11001","10001","01110"],
   '1': ["00100","01100","00100","00100","00100","00100","01110"],
@@ -27,25 +37,24 @@ const FONT5x7 = {
   ':': ["0","1","0","0","1","0","0"]
 };
 
-// Initialize 2D array for grid state
 function make2D(rows, cols, val = C_WHITE) {
   const a = new Array(rows);
   for (let r = 0; r < rows; r++) a[r] = new Array(cols).fill(val);
   return a;
 }
 
-// Setup grid and state arrays
+// p5.js setup
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
   calculateCellSize();
 
   currentMask = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
-  targetMask  = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
-  flipInfo    = new Array(GRID_ROWS).fill().map(() => Array(GRID_COLS).fill(null));
+  targetMask = make2D(GRID_ROWS, GRID_COLS, C_WHITE);
+  flipInfo = new Array(GRID_ROWS).fill().map(() => Array(GRID_COLS).fill(null));
 
   noLoop();
-  setInterval(tick, 33); 
-  updateTimeMask(); 
+  setInterval(tick, 33);
+  updateTimeMask();
 }
 
 function calculateCellSize() {
@@ -55,13 +64,13 @@ function calculateCellSize() {
   cellH = usableH / GRID_ROWS;
 }
 
-// Main update and render loop
+// Main update loop
 function tick() {
   updateTimeMask();
   drawGrid();
 }
 
-// Draw the grid and handle cell animations
+// Grid rendering and flip animation
 function drawGrid() {
   background(255);
   push();
@@ -76,9 +85,7 @@ function drawGrid() {
   const gy = (mouseY - MARGIN_PX) / cellH;
   const hoveredC = floor(gx);
   const hoveredR = floor(gy);
-  const hoverValid =
-    hoveredC >= 0 && hoveredC < GRID_COLS &&
-    hoveredR >= 0 && hoveredR < GRID_ROWS;
+  const hoverValid = hoveredC >= 0 && hoveredC < GRID_COLS && hoveredR >= 0 && hoveredR < GRID_ROWS;
 
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
@@ -89,7 +96,6 @@ function drawGrid() {
       const rippleCode = rippleDesiredCode(baseCode, r, c, nowMs);
       const desired = (rippleCode !== null) ? rippleCode : baseCode;
 
-      // Initiate flip animation if needed
       if (!flipInfo[r][c] && currentMask[r][c] !== desired) {
         flipInfo[r][c] = {
           from: currentMask[r][c],
@@ -101,7 +107,6 @@ function drawGrid() {
 
       const info = flipInfo[r][c];
       if (info) {
-        // Animate cell flip with squash effect
         const t = constrain((nowMs - info.startMs) / info.duration, 0, 1);
         const squash = abs(cos(PI * t));
         const midwayCol = (t < 0.5) ? info.from : info.to;
@@ -142,11 +147,10 @@ function drawGrid() {
 
 function colorFor(code) {
   if (code === C_BLACK) return 0;
-  if (code === C_RED)   return color(220, 0, 0);
+  if (code === C_RED) return color(220, 0, 0);
   return 255;
 }
 
-// Determine cell color based on active ripples
 function rippleDesiredCode(baseCode, r, c, nowMs) {
   for (let i = 0; i < ripples.length; i++) {
     const rp = ripples[i];
@@ -158,13 +162,13 @@ function rippleDesiredCode(baseCode, r, c, nowMs) {
     if (abs(dr - radius) <= RIPPLE_BAND) {
       if (baseCode === C_WHITE) return C_BLACK;
       if (baseCode === C_BLACK) return C_WHITE;
-      if (baseCode === C_RED)   return C_RED;
+      if (baseCode === C_RED) return C_RED;
     }
   }
   return null;
 }
 
-// Update the targetMask to reflect the current time
+// Compute time-based target mask
 function updateTimeMask() {
   const now = new Date();
   const hh = nf(now.getHours(), 2);
@@ -191,7 +195,6 @@ function updateTimeMask() {
   const startC = floor((GRID_COLS - patternCols) / 2);
   const startR = floor((GRID_ROWS - patternRows) / 2);
 
-  // Reset targetMask to white
   for (let r = 0; r < GRID_ROWS; r++)
     for (let c = 0; c < GRID_COLS; c++)
       targetMask[r][c] = C_WHITE;
@@ -220,8 +223,7 @@ function updateTimeMask() {
     }
     cursor += w + 1;
   }
-  
-  // Schedule flips for cells that differ from currentMask
+
   const nowMs = millis();
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
@@ -239,7 +241,7 @@ function updateTimeMask() {
   return true;
 }
 
-// Handle mouse input to add ripples
+// User interaction: trigger ripple
 function mousePressed() {
   const gx = (mouseX - MARGIN_PX) / cellW;
   const gy = (mouseY - MARGIN_PX) / cellH;
@@ -250,7 +252,7 @@ function mousePressed() {
   }
 }
 
-// Remove ripples that have exceeded their lifespan
+// Remove expired ripple effects
 function cleanupRipples(nowMs) {
   const maxGridRadius = sqrt(GRID_COLS * GRID_COLS + GRID_ROWS * GRID_ROWS);
   const maxTravelMs = (maxGridRadius / RIPPLE_SPEED) * 1000;
