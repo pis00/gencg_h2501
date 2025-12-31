@@ -1,4 +1,4 @@
-# Week 01
+# Week 01/02
 
 ## Computing without computer
 
