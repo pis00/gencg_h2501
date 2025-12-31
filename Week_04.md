@@ -23,11 +23,9 @@ This sketch explores the idea of showing time without using traditional clock ha
 ### My exemple
 The idea for this digital clock comes from the mechanical flip clock, in particular from the moment when the time changes and the numbers physically flip to the next value. Rather than focusing on the object itself, I was interested in the visual and temporal effect of this transition: the brief interruption where the old time disappears and the new one appears. This flipping action makes the passage of time feel tangible and rhythmic, emphasizing change rather than static display. I wanted to translate this sensation into a digital form, keeping the feeling of anticipation and movement that characterizes flip clocks.
 
-{% raw %}
-<video width="100%" height="450" loop muted autoplay>
-  <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/Week04/Clock.jpeg" type="video/mp4">
-</video>
-{% endraw %}
+
+![Example Image](/content/Week04/Clock.jpeg)
+
 
 To create this effect in my sketch, I built a grid-based digital clock where each cell behaves like a small flip element. The current time is displayed using pixel-style digits, and when the time updates, the cells animate instead of changing instantly. A flip animation compresses each cell vertically before revealing its new state, echoing the physical movement of a mechanical flip clock. In addition to the time-based transitions, an interactive animation is triggered when the user interacts with the clock, causing a visual ripple that propagates across the grid. This interaction reinforces the idea of time as something dynamic and responsive, translating the mechanical behavior of a flip clock into a digital, generative system.
 
