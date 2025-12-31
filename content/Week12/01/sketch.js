@@ -113,6 +113,7 @@ function gotResults(error, result) {
 
 // Main render loop
 function draw() {
+  drawBorder2D();
   background(255);
 
   if (!modelReadyFlag) {
@@ -171,5 +172,4 @@ function draw() {
       }
     }
   }
-  drawBorder2D();
 }
