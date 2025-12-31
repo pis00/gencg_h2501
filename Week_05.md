@@ -16,6 +16,8 @@ The sketch is built by layering simple movements to let the computer generate a 
 <iframe src="content/Week05/02/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}
 
+This sketch is used to visualize the trajectory that generates the drawing in the sketch above. It does not produce a drawing itself, but exposes all the moving elements involved in the motion system, making the path easier to read.
+
 {% raw %}
 <iframe src="content/Week05/03/embed.html" width="100%" height="450" frameborder="no"></iframe>
 {% endraw %}
