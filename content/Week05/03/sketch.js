@@ -19,6 +19,7 @@ let dotSize = 10;
 
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
+  background(0);
   updatePoints();
 }
 
@@ -35,7 +36,7 @@ function updatePoints() {
 }
 
 function draw() {
-  background(0);
+  // background(0);
 
   // --- movimento del centro sul percorso a 4 lati ---
   let p0 = points[segmentIndex];
@@ -58,7 +59,7 @@ function draw() {
   // --- orbita del cerchio invisibile ---
   noFill();
   stroke(255, 80);
-  strokeWeight(1);
+  strokeWeight(dotSize);
   ellipse(centerX, centerY, radius * 2, radius * 2);
 
   let circleCenterX = centerX + cos(angle) * radius;
@@ -73,6 +74,7 @@ function draw() {
 
   noFill();
   stroke(255, 80);
+  strokeWeight(dotSize);
   ellipse(circleCenterX, circleCenterY, smallRadius * 2, smallRadius * 2);
 
   let px = circleCenterX + cos(subAngle) * smallRadius;
@@ -91,5 +93,6 @@ function draw() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  background(0);
   updatePoints();
 }
