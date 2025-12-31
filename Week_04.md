@@ -23,6 +23,7 @@ This sketch explores the idea of showing time without using traditional clock ha
 ### My exemple
 The idea for this digital clock comes from the mechanical flip clock, in particular from the moment when the time changes and the numbers physically flip to the next value. Rather than focusing on the object itself, I was interested in the visual and temporal effect of this transition: the brief interruption where the old time disappears and the new one appears. This flipping action makes the passage of time feel tangible and rhythmic, emphasizing change rather than static display. I wanted to translate this sensation into a digital form, keeping the feeling of anticipation and movement that characterizes flip clocks.
 
+{% raw %}
 <video width="100%" height="450" loop muted autoplay>
   <source src="https://github.com/pis00/gencg_h2501/raw/journal/content/Week04/Clock.jpeg" type="video/mp4">
 </video>
