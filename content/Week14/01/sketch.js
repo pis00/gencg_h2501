@@ -14,7 +14,6 @@ let startedSegmentation = false;
 
 const alphaThreshold = 40;
 
-// grid / letters
 let cellSize = 8;
 let cols, rows;
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -28,8 +27,8 @@ let gridX, gridY, gridW, gridH;
 let colOffset = [];
 let colSpeed = [];
 
+// p5.js setup
 function setup() {
-  // Initialize canvas and video capture
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
@@ -47,7 +46,6 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // Load BodyPix model
   bodypix = ml5.bodyPix(options, () => {
     modelReadyFlag = true;
     tryStartSegmentation();
@@ -57,13 +55,13 @@ function setup() {
   textSize(cellSize - 1);
 }
 
+// Handle window resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   updateGridArea();
   initColumnsAndChars();
 }
 
-// Calculate grid size and position based on canvas and video aspect ratio
 function updateGridArea() {
   let canvasRatio = width / height;
   let videoRatio = vidW / vidH;
@@ -83,7 +81,6 @@ function updateGridArea() {
   rows = floor(gridH / cellSize);
 }
 
-// Initialize vertical rain offsets, speeds, and character grid
 function initColumnsAndChars() {
   colOffset = [];
   colSpeed = [];
@@ -102,7 +99,7 @@ function initColumnsAndChars() {
   }
 }
 
-// Start segmentation if model and video are ready
+// Start segmentation loop when ready
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
@@ -110,10 +107,9 @@ function tryStartSegmentation() {
   }
 }
 
-// Continuously receive segmentation results
+// Segmentation result callback
 function gotResults(error, result) {
   if (error) {
-    console.error(error);
     return;
   }
   segmentation = result;
@@ -124,7 +120,6 @@ function randomChar() {
   return letters.charAt(floor(random(letters.length)));
 }
 
-// Check if pixel is inside the person mask with a 5x5 neighborhood
 function isInsideMask(maskImg, px, py) {
   let mW = maskImg.width;
   let mH = maskImg.height;
@@ -145,8 +140,8 @@ function isInsideMask(maskImg, px, py) {
   return false;
 }
 
+// Main render loop
 function draw() {
-  // Clear background
   background(255);
 
   if (!modelReadyFlag || !videoReadyFlag || !segmentation || !segmentation.backgroundMask) {
@@ -159,7 +154,6 @@ function draw() {
   let mW = maskImg.width;
   let mH = maskImg.height;
 
-  // Draw falling letters inside the person mask
   textAlign(CENTER, CENTER);
   textSize(cellSize - 1);
   fill(0);

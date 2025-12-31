@@ -14,32 +14,27 @@ let startedSegmentation = false;
 
 const alphaThreshold = 128;
 
-// Matrix effect
 let cellSize = 14;
 let cols, rows;
 let streams = [];
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-// base video size (manteniamo aspect ratio)
 let vidW = 640;
 let vidH = 480;
 
-// area centrata dove “vive” la camera (e quindi la mask)
 let camX, camY, camW, camH;
 
+// p5.js setup
 function setup() {
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
-  // Webcam (non stirare al canvas)
   video = createCapture(VIDEO, () => {
-    console.log("Capture created");
   });
   video.size(vidW, vidH);
   video.hide();
 
   video.elt.addEventListener("loadeddata", () => {
-    console.log("Video loaded data");
     vidW = video.width;
     vidH = video.height;
 
@@ -49,9 +44,7 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // BodyPix
   bodypix = ml5.bodyPix(options, () => {
-    console.log("BodyPix model loaded");
     modelReadyFlag = true;
     tryStartSegmentation();
   });
@@ -60,6 +53,7 @@ function setup() {
   textSize(cellSize);
 }
 
+// Handle window resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   updateCameraArea();
@@ -67,7 +61,6 @@ function windowResized() {
 }
 
 function updateCameraArea() {
-  // area centrata con aspect ratio del video
   let canvasRatio = width / height;
   let videoRatio = vidW / vidH;
 
@@ -100,17 +93,17 @@ function initStreams() {
   }
 }
 
+// Start segmentation loop when ready
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
-    console.log("Starting segmentation loop");
     bodypix.segment(video, gotResults);
   }
 }
 
+// Segmentation result callback
 function gotResults(error, result) {
   if (error) {
-    console.error(error);
     return;
   }
 
@@ -118,6 +111,7 @@ function gotResults(error, result) {
   bodypix.segment(video, gotResults);
 }
 
+// Main render loop
 function draw() {
   background(255);
 
@@ -145,9 +139,6 @@ function draw() {
   noStroke();
   fill(0, 180, 0);
 
-  // (opzionale) debug area camera
-  // noFill(); stroke(220); rect(camX, camY, camW, camH); noStroke();
-
   for (let i = 0; i < streams.length; i++) {
     let s = streams[i];
 
@@ -164,7 +155,6 @@ function draw() {
 
       let xPos = s.x;
 
-      // mappa canvas -> mask usando area camera centrata
       let xNorm = (xPos - camX) / camW;
       let yNorm = (yPos - camY) / camH;
       if (xNorm < 0 || xNorm > 1 || yNorm < 0 || yNorm > 1) continue;

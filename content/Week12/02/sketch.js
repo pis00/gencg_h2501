@@ -1,3 +1,4 @@
+
 let video;
 let bodypix;
 let segmentation;
@@ -20,27 +21,25 @@ let cols, rows;
 let streams = [];
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-// video base size (manteniamo aspect ratio)
+// video base size (maintain aspect ratio)
 let vidW = 640;
 let vidH = 480;
 
-// area centrata dove vive la “camera” (e quindi anche la mask/lettere)
+// centered area where the camera and mask/letters reside
 let camX, camY, camW, camH;
 
+// p5.js setup
 function setup() {
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
   // Webcam
   video = createCapture(VIDEO, () => {
-    console.log("Capture created");
   });
   video.size(vidW, vidH);
   video.hide();
 
   video.elt.addEventListener("loadeddata", () => {
-    console.log("Video loaded data");
-    // aggiorna dimensioni reali (se diverse)
     vidW = video.width;
     vidH = video.height;
 
@@ -50,9 +49,8 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // Carica BodyPix
+  // Load BodyPix model
   bodypix = ml5.bodyPix(options, () => {
-    console.log("BodyPix model loaded");
     modelReadyFlag = true;
     tryStartSegmentation();
   });
@@ -61,6 +59,7 @@ function setup() {
   textSize(cellSize - 2);
 }
 
+// Handle window resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   updateCameraArea();
@@ -68,7 +67,7 @@ function windowResized() {
 }
 
 function updateCameraArea() {
-  // area centrata con aspect ratio del video
+  // centered area with video aspect ratio
   let canvasRatio = width / height;
   let videoRatio = vidW / vidH;
 
@@ -94,31 +93,32 @@ function initStreams() {
   for (let i = 0; i < cols; i++) {
     let len = floor(random(rows * 0.8, rows * 1.4));
     streams.push({
-      x: camX + i * cellSize + cellSize / 2, // dentro area camera centrata
-      y: random(camY - camH, camY),          // partono sopra l’area camera
+      x: camX + i * cellSize + cellSize / 2,
+      y: random(camY - camH, camY),
       speed: random(2, 5),
       length: len
     });
   }
 }
 
+// Start segmentation loop when ready
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
-    console.log("Starting segmentation loop");
     bodypix.segment(video, gotResults);
   }
 }
 
+// Segmentation result callback
 function gotResults(error, result) {
   if (error) {
-    console.error(error);
     return;
   }
   segmentation = result;
   bodypix.segment(video, gotResults);
 }
 
+// Main render loop
 function draw() {
   background(255);
 
@@ -140,24 +140,18 @@ function draw() {
     return;
   }
 
-  // Maschera della persona
   let maskImg = segmentation.backgroundMask;
   maskImg.loadPixels();
 
   noStroke();
-  fill(0); // LETTERE NERE
+  fill(0);
   textSize(cellSize - 2);
-
-  // (opzionale) visualizza il rettangolo area camera per debug
-  // noFill(); stroke(220); rect(camX, camY, camW, camH); noStroke();
 
   for (let i = 0; i < streams.length; i++) {
     let s = streams[i];
 
-    // scende
     s.y += s.speed;
 
-    // reset quando lo stream è sceso oltre l’area camera
     if (s.y > camY + camH + s.length * cellSize) {
       s.length = floor(random(rows * 0.8, rows * 1.4));
       s.y = camY - s.length * cellSize;
@@ -170,7 +164,6 @@ function draw() {
 
       let xPos = s.x;
 
-      // mappa coordinate canvas -> coordinate mask (video)
       let xNorm = (xPos - camX) / camW;
       let yNorm = (yPos - camY) / camH;
 
