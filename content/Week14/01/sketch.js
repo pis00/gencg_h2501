@@ -143,6 +143,7 @@ function isInsideMask(maskImg, px, py) {
 // Main render loop
 function draw() {
   background(255);
+  drawBorder2D();
 
   if (!modelReadyFlag || !videoReadyFlag || !segmentation || !segmentation.backgroundMask) {
     return;
@@ -183,5 +184,4 @@ function draw() {
       }
     }
   }
-  drawBorder2D();
 }
