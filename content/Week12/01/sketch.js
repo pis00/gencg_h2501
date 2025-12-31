@@ -113,9 +113,8 @@ function gotResults(error, result) {
 
 // Main render loop
 function draw() {
-  drawBorder2D();
   background(255);
-
+  drawBorder2D();
   if (!modelReadyFlag) {
     fill(0);
     text("Loading BodyPix model...", width / 2, height / 2);
