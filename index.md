@@ -1,5 +1,5 @@
 ---
-title: Index
+title: Info
 nav_order: 0
 ---
 

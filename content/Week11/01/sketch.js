@@ -79,6 +79,7 @@ function draw() {
   }
 
   updatePixels();
+  drawBorder2D();
 }
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
