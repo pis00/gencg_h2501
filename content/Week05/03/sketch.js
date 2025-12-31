@@ -5,12 +5,12 @@ let circleSize = 80;
 
 let canvas;
 
-// punti per il centro dell'orbita (si muove sui 4 lati)
+// Center points for the orbit path (moves along 4 sides)
 let points = [];
 let segmentIndex = 0;
 let t = 0;
 
-// velocità
+// Speeds for movement
 let pathSpeed = 0.01;
 let angleSpeed = 0.03;
 let subAngleSpeed = 0.12;
@@ -18,12 +18,14 @@ let subAngleSpeed = 0.12;
 let dotSize = 10;
 
 function setup() {
+  // Canvas setup and initial points calculation
   canvas = createCanvas(windowWidth, windowHeight);
   background(0);
   updatePoints();
 }
 
 function updatePoints() {
+  // Define points for the rectangular path
   points = [
     { x: width / 2,      y: radius },
     { x: width - radius, y: height / 2 },
@@ -36,9 +38,9 @@ function updatePoints() {
 }
 
 function draw() {
-  // background(0);
+  // Main draw loop handling path movement and nested orbiting
 
-  // --- movimento del centro sul percorso a 4 lati ---
+  // Calculate center position moving along the 4-segment path
   let p0 = points[segmentIndex];
   let p1 = points[(segmentIndex + 1) % points.length];
 
@@ -51,17 +53,18 @@ function draw() {
     segmentIndex = (segmentIndex + 1) % points.length;
   }
 
-  // centro principale
+  // Draw main center point
   noStroke();
   fill(255);
   ellipse(centerX, centerY, dotSize, dotSize);
 
-  // --- orbita del cerchio invisibile ---
+  // Draw invisible orbit circle around center
   noFill();
   stroke(255, 80);
   strokeWeight(dotSize);
   ellipse(centerX, centerY, radius * 2, radius * 2);
 
+  // Calculate orbiting circle center
   let circleCenterX = centerX + cos(angle) * radius;
   let circleCenterY = centerY + sin(angle) * radius;
 
@@ -69,7 +72,7 @@ function draw() {
   fill(255);
   ellipse(circleCenterX, circleCenterY, dotSize, dotSize);
 
-  // --- pallina sulla circonferenza del cerchio invisibile ---
+  // Draw smaller orbit circle around the orbiting circle center
   let smallRadius = circleSize / 2;
 
   noFill();
@@ -77,6 +80,7 @@ function draw() {
   strokeWeight(dotSize);
   ellipse(circleCenterX, circleCenterY, smallRadius * 2, smallRadius * 2);
 
+  // Calculate position of small dot on the smaller orbit
   let px = circleCenterX + cos(subAngle) * smallRadius;
   let py = circleCenterY + sin(subAngle) * smallRadius;
 
@@ -84,7 +88,7 @@ function draw() {
   fill(255);
   ellipse(px, py, dotSize, dotSize);
 
-  // aggiorna angoli
+  // Update angles for orbit rotations
   angle += angleSpeed;
   subAngle += subAngleSpeed;
 
@@ -92,6 +96,7 @@ function draw() {
 }
 
 function windowResized() {
+  // Handle canvas resize and update points accordingly
   resizeCanvas(windowWidth, windowHeight);
   background(0);
   updatePoints();

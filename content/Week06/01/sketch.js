@@ -1,5 +1,6 @@
 let canvas;
 
+// Global state and configuration variables
 let ballX;
 let ballY;
 let ballRadius;
@@ -7,7 +8,6 @@ let ballRadius;
 let ballVelX;
 const SECONDS_PER_SIDE = 1.0;
 
-// tempo reale basato sui rimbalzi
 let seconds = 0;
 let minutes = 0;
 let hours   = 0;
@@ -18,6 +18,7 @@ let blackHits = 0;
 let redHits = 0;
 let greenHits = 0;
 
+// Setup and ball initialization logic
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
   initBall();
@@ -42,10 +43,12 @@ function initBall() {
   greenHits = 0;
 }
 
+// Main draw loop structure
 function draw() {
   let dt = deltaTime / 1000;
   ballX += ballVelX * dt;
 
+  // Collision and tick handling
   if (ballX - ballRadius <= 0) {
     ballX = ballRadius;
     ballVelX = abs(ballVelX);
@@ -69,15 +72,16 @@ function draw() {
   drawBorder2D();
 }
 
+// Time counting logic based on collisions
 function onTick() {
 
-  // ogni rimbalzo = 1 secondo
+  // Increment seconds per collision
   seconds++;
 
-  // ogni rimbalzo aumenta il contatore nero (totale rimbalzi)
+  // Increment total hit counter
   blackHits++;
 
-  // gestione rollover secondi/minuti/ore
+  // Handle rollover for minutes and hours with color changes
   if (seconds >= 60) {
     seconds = 0;
     minutes++;
@@ -85,7 +89,6 @@ function onTick() {
     ballColor = color(255, 0, 0);
     redHits++;
   } else {
-    // secondi normali
     ballColor = color(0);
   }
 
@@ -98,6 +101,7 @@ function onTick() {
   }
 }
 
+// Counter rendering logic
 function drawCounters() {
   let margin = 20;
   let x = width - 150;
@@ -109,7 +113,7 @@ function drawCounters() {
   textSize(16);
   textAlign(LEFT, TOP);
 
-  // nero
+  // Black counter
   fill(0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
@@ -117,7 +121,7 @@ function drawCounters() {
 
   y += lineSpacing;
 
-  // rosso
+  // Red counter
   fill(255, 0, 0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
@@ -125,13 +129,14 @@ function drawCounters() {
 
   y += lineSpacing;
 
-  // verde
+  // Green counter
   fill(0, 255, 0);
   ellipse(x, y + dotSize / 2, dotSize, dotSize);
   fill(0);
   text("= " + greenHits, x + 18, y);
 }
 
+// Resize handling
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   initBall();

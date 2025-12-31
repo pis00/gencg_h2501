@@ -1,11 +1,13 @@
 let canvas;
 
+// Canvas and global setup
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
   textAlign(CENTER, CENTER);
 }
 
+// Main draw loop rendering the clock visualization
 function draw() {
   background(255);
 
@@ -19,6 +21,7 @@ function draw() {
   let mn = minute();
   let sc = second();
 
+  // Time-to-index mapping for clock positions
   let secondIndex = sc;
   let minuteIndex = mn;
   let hourIndex = floor((hr % 12) * 5 + mn / 12);
@@ -29,6 +32,7 @@ function draw() {
 
   noStroke();
 
+  // Visual encoding of hours, minutes, and seconds with colors and sizes
   for (let i = 0; i < 60; i++) {
     let angle = map(i, 0, 60, 0, 360);
     let x = cos(angle) * circleRadius;
@@ -61,6 +65,7 @@ function draw() {
   drawBorder2D();
 }
 
+// Resize handling to maintain responsive canvas
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }

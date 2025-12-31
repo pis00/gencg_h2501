@@ -1,6 +1,7 @@
 let current = { face: 0, eyes: 0, nose: 0, ears: 0, hair: 0, mouth: 0 };
 let skin;
 
+// Setup and initialization
 function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
   skin = color(255, 190, 200);
@@ -8,6 +9,7 @@ function setup() {
   randomizeAll();
 }
 
+// Main draw structure and rendering order
 function draw() {
   background(255);
 
@@ -19,7 +21,6 @@ function draw() {
 
   const fm = getFaceMetrics(current.face, faceW, faceH);
 
-  // Face first, then hair (on the forehead), then features
   drawFaceShape(current.face, faceW, faceH);
   drawHair(current.hair, faceW, faceH, fm);
   drawEars(current.ears, faceW, faceH);
@@ -32,11 +33,13 @@ function draw() {
   drawBorder2D();
 }
 
+// Interaction handling
 function mousePressed() {
   randomizeAll();
   redraw();
 }
 
+// Randomization logic
 function randomizeAll() {
   current.face  = floor(random(5));
   current.eyes  = floor(random(5));
@@ -46,33 +49,33 @@ function randomizeAll() {
   current.mouth = floor(random(5));
 }
 
-// -------------------- Face metrics (keeps hair high & snug) --------------------
+// Face metric computation
 function getFaceMetrics(type, w, h) {
-  // Baselines: high fringe, dome centered higher than forehead.
   let templeX = w * 0.46;
-  let fringeY = -h * 0.16;   // fringe sits well above eyes
-  let capY    = -h * 0.27;   // center of the hair dome (higher = more negative)
-  let capW    = w * 1.28;    // dome width
-  let capH    = h * 0.70;    // dome height (small so it won't drop)
+  let fringeY = -h * 0.16;
+  let capY    = -h * 0.27;
+  let capW    = w * 1.28;
+  let capH    = h * 0.70;
   switch (type) {
-    case 0: break; // oval
-    case 1: templeX = w*0.50; fringeY = -h*0.155; capY = -h*0.26; capW = w*1.32; capH = h*0.68; break; // round
-    case 2: templeX = w*0.44; fringeY = -h*0.165; capY = -h*0.28; capW = w*1.34; capH = h*0.68; break; // square
-    case 3: templeX = w*0.42; fringeY = -h*0.17;  capY = -h*0.29; capW = w*1.30; capH = h*0.72; break; // heart
-    case 4: templeX = w*0.41; fringeY = -h*0.17;  capY = -h*0.29; capW = w*1.26; capH = h*0.68; break; // long
+    case 0: break;
+    case 1: templeX = w*0.50; fringeY = -h*0.155; capY = -h*0.26; capW = w*1.32; capH = h*0.68; break;
+    case 2: templeX = w*0.44; fringeY = -h*0.165; capY = -h*0.28; capW = w*1.34; capH = h*0.68; break;
+    case 3: templeX = w*0.42; fringeY = -h*0.17;  capY = -h*0.29; capW = w*1.30; capH = h*0.72; break;
+    case 4: templeX = w*0.41; fringeY = -h*0.17;  capY = -h*0.29; capW = w*1.26; capH = h*0.68; break;
   }
   return { templeX, fringeY, capY, capW, capH };
 }
 
-// -------------------- Face shapes (5) --------------------
+// Facial feature groups
+
 function drawFaceShape(type, w, h) {
   noStroke();
   fill(skin);
   switch (type) {
-    case 0: ellipse(0, 0, w, h); break;                            // oval
-    case 1: ellipse(0, 0, w*0.95, h*0.95); break;                  // round
-    case 2: rectMode(CENTER); rect(0, 0, w*0.90, h*0.95, w*0.12); break; // square (soft)
-    case 3: // heart
+    case 0: ellipse(0, 0, w, h); break;
+    case 1: ellipse(0, 0, w*0.95, h*0.95); break;
+    case 2: rectMode(CENTER); rect(0, 0, w*0.90, h*0.95, w*0.12); break;
+    case 3:
       push(); translate(0, -h*0.05);
       beginShape();
       for (let a=PI, i=0;i<=40;i++,a+=PI/40){
@@ -84,11 +87,10 @@ function drawFaceShape(type, w, h) {
       endShape(CLOSE);
       pop();
       break;
-    case 4: rectMode(CENTER); rect(0, 0, w*0.80, h, w*0.20); break; // long
+    case 4: rectMode(CENTER); rect(0, 0, w*0.80, h, w*0.20); break;
   }
 }
 
-// -------------------- Ears (5) --------------------
 function drawEars(type, w, h) {
   noStroke(); fill(skin);
   const earCX = w*0.55;
@@ -105,46 +107,39 @@ function drawEars(type, w, h) {
   arc( earCX, 0, dW, dH,  HALF_PI, -HALF_PI);
 }
 
-// -------------------- HAIR (5) — one upright dome shape each --------------------
 function drawHair(type, w, h, fm) {
   fill(0); noStroke();
   const LT = -fm.templeX, RT = fm.templeX;
 
-  // Build a single closed path:
-  //   1) Lower edge (fringe) from LEFT → RIGHT (above eyes)
-  //   2) Upper edge = TOP half of an ellipse from RIGHT → LEFT (dome)
   beginShape();
 
-  // 1) Fringe (LEFT → RIGHT)
   const samples = 18;
   for (let i = 0; i <= samples; i++) {
-    const t = i / samples;           // 0..1 from left to right
+    const t = i / samples;
     const x = lerp(LT, RT, t);
-    let y = fm.fringeY;              // base fringe
-    const amp = h * 0.018;           // small amplitude so it stays high
+    let y = fm.fringeY;
+    const amp = h * 0.018;
     switch (type) {
-      case 0: y += 0; break;                                             // straight
-      case 1: y += amp * (-0.6 + 1.2 * abs(t - 0.5)); break;             // center dip
-      case 2: y += lerp(-amp*0.4, amp*0.4, t); break;                    // side part
-      case 3: y += amp * sin(t * TWO_PI); break;                         // wave
-      case 4: y += -amp * 0.9 * exp(-20 * (t-0.5) * (t-0.5)); break;     // widow's peak
+      case 0: y += 0; break;
+      case 1: y += amp * (-0.6 + 1.2 * abs(t - 0.5)); break;
+      case 2: y += lerp(-amp*0.4, amp*0.4, t); break;
+      case 3: y += amp * sin(t * TWO_PI); break;
+      case 4: y += -amp * 0.9 * exp(-20 * (t-0.5) * (t-0.5)); break;
     }
     vertex(x, y);
   }
 
-  // 2) Top dome (RIGHT → LEFT): true UPPER arc
   const steps = 28;
   for (let i = 0; i <= steps; i++) {
-    const a = (PI * i) / steps;               // 0 .. PI
-    const x = (fm.capW * 0.5) * cos(a);       // right (0) → left (PI)
-    const y = fm.capY - (fm.capH * 0.5) * sin(a); // UPPER half (minus!)
+    const a = (PI * i) / steps;
+    const x = (fm.capW * 0.5) * cos(a);
+    const y = fm.capY - (fm.capH * 0.5) * sin(a);
     vertex(x, y);
   }
 
   endShape(CLOSE);
 }
 
-// -------------------- Eyes (5) --------------------
 function drawEyes(type, w, h) {
   const y = -h*0.10, dx = w*0.20;
   noStroke();
@@ -164,7 +159,6 @@ function drawAlmondEye(cx, cy, ew, eh) {
   endShape(CLOSE);
 }
 
-// -------------------- Noses (5) --------------------
 function drawNose(type, w, h) {
   stroke(120); strokeWeight(2); noFill();
   switch (type) {
@@ -176,15 +170,14 @@ function drawNose(type, w, h) {
   }
 }
 
-// -------------------- Mouths (5) --------------------
 function drawMouth(type, w, h) {
   const y = h*0.20;
   stroke(120,0,40); strokeWeight(4); noFill();
   switch (type) {
-    case 0: arc(0,y,80,40,0,PI); break;              // smile
-    case 1: line(-40,y,40,y); break;                 // neutral
-    case 2: arc(0,y+20,80,40,PI,0); break;           // frown
-    case 3: noStroke(); fill(120,0,40); ellipse(0,y+4,32,40); fill(255,180,180); ellipse(0,y+16,30,14); break; // open
-    case 4: noFill(); stroke(120,0,40); arc(0,y,90,50,0,PI); stroke(255); strokeWeight(2); line(-34,y,34,y); for(let i=-4;i<=4;i++){const x=map(i,-4,4,-30,30); line(x,y,x,y+14);} break; // grin
+    case 0: arc(0,y,80,40,0,PI); break;
+    case 1: line(-40,y,40,y); break;
+    case 2: arc(0,y+20,80,40,PI,0); break;
+    case 3: noStroke(); fill(120,0,40); ellipse(0,y+4,32,40); fill(255,180,180); ellipse(0,y+16,30,14); break;
+    case 4: noFill(); stroke(120,0,40); arc(0,y,90,50,0,PI); stroke(255); strokeWeight(2); line(-34,y,34,y); for(let i=-4;i<=4;i++){const x=map(i,-4,4,-30,30); line(x,y,x,y+14);} break;
   }
 }
