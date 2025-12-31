@@ -1,3 +1,4 @@
+// BodyPix background segmentation sketch
 let video;
 let bodypix;
 let segmentation;
@@ -6,8 +7,8 @@ let options = {
   segmentationThreshold: 0.5
 };
 
+// p5.js setup
 function setup() {
-  // canvas a tutta “area sketch” come gli altri giorni
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
 
@@ -19,20 +20,18 @@ function setup() {
 }
 
 function modelReady() {
-  console.log("BodyPix model loaded");
 }
 
+ // Start segmentation when video is ready
 function videoReady() {
-  console.log("Video ready");
   if (bodypix) {
-    console.log("Starting segmentation...");
     bodypix.segment(video, gotResults);
   }
 }
 
+ // Segmentation result callback
 function gotResults(error, result) {
   if (error) {
-    console.error(error);
     return;
   }
 
@@ -40,6 +39,7 @@ function gotResults(error, result) {
   bodypix.segment(video, gotResults);
 }
 
+ // Main render loop
 function draw() {
   background(255);
 
@@ -53,10 +53,8 @@ function draw() {
   let mH = maskImg.height;
 
   for (let y = 0; y < height; y++) {
-    // mappa y canvas -> y mask
     let py = floor((y / height) * (mH - 1));
     for (let x = 0; x < width; x++) {
-      // mappa x canvas -> x mask
       let px = floor((x / width) * (mW - 1));
 
       let mIndex = (px + py * mW) * 4;
@@ -81,6 +79,8 @@ function draw() {
   updatePixels();
   drawBorder2D();
 }
+
+ // Handle window resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   video.size(width, height);
