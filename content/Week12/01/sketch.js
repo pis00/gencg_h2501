@@ -117,19 +117,19 @@ function draw() {
 
   if (!modelReadyFlag) {
     fill(0);
-    text("Caricamento modello BodyPix...", width / 2, height / 2);
+    text("Loading BodyPix model...", width / 2, height / 2);
     return;
   }
 
   if (!videoReadyFlag) {
     fill(0);
-    text("Caricamento video dalla camera...", width / 2, height / 2);
+    text("Loading camera video...", width / 2, height / 2);
     return;
   }
 
   if (!segmentation || !segmentation.backgroundMask) {
     fill(0);
-    text("Calcolo della segmentazione...", width / 2, height / 2);
+    text("Computing segmentation...", width / 2, height / 2);
     return;
   }
 
