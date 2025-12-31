@@ -15,19 +15,19 @@ let startedSegmentation = false;
 const alphaThreshold = 40;
 
 // grid / letters
-let cellSize = 8;        // celle un po' più grandi → meno colonne, più FPS
+let cellSize = 8;
 let cols, rows;
 let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-let charGrid = [];       // [col][row] carattere fisso per ogni cella
+let charGrid = [];
 
 // video size
 let vidW = 320;
 let vidH = 240;
 
-// area dove disegnare le lettere (stesso aspect del video)
+// area to draw letters (same aspect ratio as video)
 let gridX, gridY, gridW, gridH;
 
-// offset e velocità per ogni colonna (pioggia verticale)
+// offset and speed for each column (vertical rain)
 let colOffset = [];
 let colSpeed = [];
 
@@ -52,7 +52,7 @@ function setup() {
     tryStartSegmentation();
   });
 
-  // BodyPix
+  // BodyPix model
   bodypix = ml5.bodyPix(options, () => {
     console.log("BodyPix model loaded");
     modelReadyFlag = true;
@@ -96,16 +96,17 @@ function initColumnsAndChars() {
   if (!cols || !rows) return;
 
   for (let c = 0; c < cols; c++) {
-    colOffset[c] = random(0, gridH);      // posizione iniziale del “nastro”
-    colSpeed[c]  = random(1.5, 3);        // velocità un po' più lenta
+    colOffset[c] = random(0, gridH);
+    colSpeed[c]  = random(1.5, 3);
 
     charGrid[c] = [];
     for (let r = 0; r < rows; r++) {
-      charGrid[c][r] = randomChar();      // lettera iniziale per ogni cella
+      charGrid[c][r] = randomChar();
     }
   }
 }
 
+// segmentation
 function tryStartSegmentation() {
   if (modelReadyFlag && videoReadyFlag && !startedSegmentation) {
     startedSegmentation = true;
@@ -127,7 +128,7 @@ function randomChar() {
   return letters.charAt(floor(random(letters.length)));
 }
 
-// controlla se (px,py) è dentro la persona usando un intorno 5x5
+// silhouette detection logic
 function isInsideMask(maskImg, px, py) {
   let mW = maskImg.width;
   let mH = maskImg.height;
@@ -150,20 +151,21 @@ function isInsideMask(maskImg, px, py) {
 
 function draw() {
   background(255);
+  drawBorder2D();
 
-  // debug
+  // debug UI
   textAlign(LEFT, TOP);
   fill(0);
   textSize(14);
   text(
-    "modelReady: " + modelReadyFlag +
-    "\nvideoReady: " + videoReadyFlag +
+    "model ready: " + modelReadyFlag +
+    "\nvideo ready: " + videoReadyFlag +
     "\nsegmentation: " + (segmentation ? "ok" : "no") +
     "\nFPS: " + nf(frameRate(), 2, 1),
     10, 10
   );
 
-  // preview camera + mask in alto a destra
+  // camera preview and mask in top-right corner
   if (videoReadyFlag) {
     let previewW = min(220, width / 3);
     let previewH = previewW * (vidH / vidW);
@@ -195,13 +197,12 @@ function draw() {
   let mW = maskImg.width;
   let mH = maskImg.height;
 
-  // --- LETTERE CHE SCENDONO NELLA SAGOMA ---
+  // falling letters inside the silhouette
   textAlign(CENTER, CENTER);
   textSize(cellSize - 1);
   fill(0);
 
   for (let c = 0; c < cols; c++) {
-    // aggiorno l’offset della colonna: pioggia continua
     colOffset[c] = (colOffset[c] + colSpeed[c]) % gridH;
 
     for (let r = 0; r < rows; r++) {
@@ -209,7 +210,6 @@ function draw() {
       let yPos = gridY + (baseY % gridH);
       let xPos = gridX + c * cellSize + cellSize / 2;
 
-      // mappo verso la mask
       let xNorm = (xPos - gridX) / gridW;
       let yNorm = (yPos - gridY) / gridH;
 
@@ -218,16 +218,13 @@ function draw() {
       if (px < 0 || px >= mW || py < 0 || py >= mH) continue;
 
       if (isInsideMask(maskImg, px, py)) {
-        // usa il carattere fisso della cella
         let ch = charGrid[c][r];
         text(ch, xPos, yPos);
 
-        // ogni tanto cambia lettera (ma non ad ogni frame)
-        if (random() < 0.01) { // 1% di probabilità per frame
+        if (random() < 0.01) {
           charGrid[c][r] = randomChar();
         }
       }
     }
   }
-  drawBorder2D();
 }
