@@ -1,7 +1,7 @@
 const SEED = 99173;
 
 function setup() {
-  canvas = createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight);
   pixelDensity(2);
   noCursor();
 }
@@ -10,7 +10,7 @@ function draw() {
   background(255);
 
   const t = constrain(mouseY / height, 0, 1);
-  const ease = t * t * (3 - 2 * t); 
+  const ease = t * t * (3 - 2 * t);
 
   const cols = max(2, round(map(constrain(mouseX, 0, width), 0, width, 6, 40)));
   const cellW = width / cols;
@@ -50,20 +50,32 @@ function draw() {
       const triA = [
         { x: -s / 2, y: -s / 2 },
         { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
+        { x: -s / 2, y:  s / 2 }
       ];
+
       const triB = [
         { x:  s / 2, y:  s / 2 },
         { x:  s / 2, y: -s / 2 },
-        { x: -s / 2, y:  s / 2 },
+        { x: -s / 2, y:  s / 2 }
       ];
 
       const S = startIsA ? triA : triB;
       const T = targetIsA ? triA : triB;
 
-      const v0 = { x: lerp(S[0].x, T[0].x, ease), y: lerp(S[0].y, T[0].y, ease) };
-      const v1 = { x: lerp(S[1].x, T[1].x, ease), y: lerp(S[1].y, T[1].y, ease) };
-      const v2 = { x: lerp(S[2].x, T[2].x, ease), y: lerp(S[2].y, T[2].y, ease) };
+      const v0 = {
+        x: lerp(S[0].x, T[0].x, ease),
+        y: lerp(S[0].y, T[0].y, ease)
+      };
+
+      const v1 = {
+        x: lerp(S[1].x, T[1].x, ease),
+        y: lerp(S[1].y, T[1].y, ease)
+      };
+
+      const v2 = {
+        x: lerp(S[2].x, T[2].x, ease),
+        y: lerp(S[2].y, T[2].y, ease)
+      };
 
       push();
       translate(x, y);
@@ -73,12 +85,10 @@ function draw() {
     }
   }
 
-  push();
   noFill();
   stroke(0);
   strokeWeight(2);
   circle(mouseX, mouseY, 14);
-  pop();
 
   drawBorder2D();
 }

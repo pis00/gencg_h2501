@@ -1,15 +1,15 @@
-const ANGLE_DEG      = 20;
-const SPACING        = 40;
+const ANGLE_DEG = 20;
+const SPACING = 40;
 const LINE_THICKNESS = 8.0;
 
-const LENS_RADIUS   = 140.0;
+const LENS_RADIUS = 140.0;
 const LENS_STRENGTH = 1.0;
 
 let gridShader;
 let VERT_SRC, FRAG_SRC;
 
 function setup() {
-  canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
   pixelDensity(1);
 
@@ -20,6 +20,7 @@ function setup() {
   out vec2 vTexCoord;
   uniform mat4 uProjectionMatrix;
   uniform mat4 uModelViewMatrix;
+
   void main() {
     vTexCoord = aTexCoord;
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
@@ -28,24 +29,26 @@ function setup() {
   FRAG_SRC = `#version 300 es
   precision mediump float;
   precision mediump int;
+
   in vec2 vTexCoord;
   out vec4 fragColor;
 
-  uniform vec2  u_resolution;
-  uniform vec2  u_mouse;
+  uniform vec2 u_resolution;
+  uniform vec2 u_mouse;
   uniform float u_spacing;
   uniform float u_thickness;
   uniform float u_angle;
   uniform float u_radius;
   uniform float u_strength;
 
-  vec2 rot(vec2 p, float a){
-    float c = cos(a), s = sin(a);
-    return vec2(c*p.x - s*p.y, s*p.x + c*p.y);
+  vec2 rot(vec2 p, float a) {
+    float c = cos(a);
+    float s = sin(a);
+    return vec2(c * p.x - s * p.y, s * p.x + c * p.y);
   }
 
-  float stripeDist(vec2 p, float s){
-    float m = mod(p.x + 0.5*s, s) - 0.5*s;
+  float stripeDist(vec2 p, float s) {
+    float m = mod(p.x + 0.5 * s, s) - 0.5 * s;
     return abs(m);
   }
 
@@ -55,9 +58,12 @@ function setup() {
     vec2 d = p - u_mouse;
     float dist = length(d);
     float t = smoothstep(u_radius, 0.0, dist);
+
     float swirl = u_strength * 1.2 * t;
-    float cs = cos(swirl), sn = sin(swirl);
-    vec2 dSwirl = vec2(cs*d.x - sn*d.y, sn*d.x + cs*d.y);
+    float cs = cos(swirl);
+    float sn = sin(swirl);
+    vec2 dSwirl = vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y);
+
     float k = 1.0 + u_strength * 0.8 * t * t;
     p = u_mouse + dSwirl * k;
 

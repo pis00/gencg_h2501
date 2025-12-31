@@ -1,27 +1,25 @@
 let points = [];
 
 function setup() {
-  canvas = createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight);
   background(255);
 }
 
-function draw() { 
+function draw() {
   drawBorder2D();
 }
- 
-  
+
 function mousePressed() {
-  let newPoint = createVector(mouseX, mouseY);
+  const newPoint = createVector(mouseX, mouseY);
   points.push(newPoint);
 
-  fill(0);
   noStroke();
+  fill(0);
   ellipse(newPoint.x, newPoint.y, 8, 8);
 
   stroke(0);
   for (let i = 0; i < points.length - 1; i++) {
-    let p = points[i];
+    const p = points[i];
     line(newPoint.x, newPoint.y, p.x, p.y);
   }
-
 }
